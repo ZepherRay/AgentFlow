@@ -1,0 +1,46 @@
+[app]
+name = "AgentFlow"
+version = "0.1.0"
+debug = true
+secret_key = "change-me-to-a-random-secret-key"
+algorithm = "HS256"
+access_token_expire_minutes = 30
+
+[database]
+host = "localhost"
+port = 3306
+user = "root"
+password = "root@123"
+database = "agentflow"
+pool_size = 10
+max_overflow = 20
+echo = false
+
+[redis]
+host = "localhost"
+port = 6379
+password = ""
+db = 0
+decode_responses = true
+
+[oss]
+provider = "aliyun"
+endpoint = ""
+access_key_id = ""
+access_key_secret = ""
+bucket_name = ""
+region = ""
+
+[llm]
+provider = "openai"
+api_key = ""
+api_base = "https://api.openai.com/v1"
+model = "gpt-3.5-turbo"
+embedding_model = "text-embedding-ada-002"
+max_tokens = 2048
+temperature = 0.7
+
+[vector_store]
+type = "faiss"
+faiss_index_path = "./data/faiss_index"
+dimension = 1536
