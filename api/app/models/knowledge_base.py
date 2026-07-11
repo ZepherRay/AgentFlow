@@ -9,6 +9,7 @@ class KnowledgeBase(Base):
 
     name = Column(String(100), nullable=False, index=True)
     description = Column(Text, default="")
+    icon = Column(String(500), default="")
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     document_count = Column(Integer, default=0)
     chunk_count = Column(Integer, default=0)

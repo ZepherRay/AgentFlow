@@ -1,0 +1,367 @@
+2026-07-10 16:42:21 | ERROR    | app.api.v1.rag:rag_query:20 - RAG query failed: cannot access local variable 'sources' where it is not associated with a value
+Traceback (most recent call last):
+
+  File "<string>", line 1, in <module>
+  File "D:\softAI\python\Anaconda\Lib\multiprocessing\spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               │     │   └ 636
+               │     └ 3
+               └ <function _main at 0x0000028C1D9B9120>
+  File "D:\softAI\python\Anaconda\Lib\multiprocessing\spawn.py", line 135, in _main
+    return self._bootstrap(parent_sentinel)
+           │    │          └ 636
+           │    └ <function BaseProcess._bootstrap at 0x0000028C1D89C540>
+           └ <SpawnProcess name='SpawnProcess-1' parent=25332 started>
+  File "D:\softAI\python\Anaconda\Lib\multiprocessing\process.py", line 313, in _bootstrap
+    self.run()
+    │    └ <function BaseProcess.run at 0x0000028C1D8C7A60>
+    └ <SpawnProcess name='SpawnProcess-1' parent=25332 started>
+  File "D:\softAI\python\Anaconda\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+    │    │        │    │        │    └ {'config': <uvicorn.config.Config object at 0x0000028C1E71F4D0>, 'target': <bound method Server.run of <uvicorn.server.Server...
+    │    │        │    │        └ <SpawnProcess name='SpawnProcess-1' parent=25332 started>
+    │    │        │    └ ()
+    │    │        └ <SpawnProcess name='SpawnProcess-1' parent=25332 started>
+    │    └ <function subprocess_started at 0x0000028C1E6CFC40>
+    └ <SpawnProcess name='SpawnProcess-1' parent=25332 started>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+    │              └ [<socket.socket fd=776, family=2, type=1, proto=6, laddr=('127.0.0.1', 8000)>]
+    └ <bound method Server.run of <uvicorn.server.Server object at 0x0000028C1E71F620>>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\uvicorn\server.py", line 75, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           │           │    │             │                      │    │      └ <function Config.get_loop_factory at 0x0000028C1E680720>
+           │           │    │             │                      │    └ <uvicorn.config.Config object at 0x0000028C1E71F4D0>
+           │           │    │             │                      └ <uvicorn.server.Server object at 0x0000028C1E71F620>
+           │           │    │             └ [<socket.socket fd=776, family=2, type=1, proto=6, laddr=('127.0.0.1', 8000)>]
+           │           │    └ <function Server.serve at 0x0000028C1E6CEE80>
+           │           └ <uvicorn.server.Server object at 0x0000028C1E71F620>
+           └ <function run at 0x0000028C1D9BA020>
+  File "D:\softAI\python\Anaconda\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x0000028C1E811FC0>
+           │      └ <function Runner.run at 0x0000028C1E3A6480>
+           └ <asyncio.runners.Runner object at 0x0000028C1E8302F0>
+  File "D:\softAI\python\Anaconda\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at D:\softAI\python\Anaconda\Lib\site-packages\uvicorn\server.py:79>...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x0000028C1E3A4040>
+           │    └ <_WindowsSelectorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x0000028C1E8302F0>
+  File "D:\softAI\python\Anaconda\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+    │    └ <function BaseEventLoop.run_forever at 0x0000028C1E3A3F60>
+    └ <_WindowsSelectorEventLoop running=True closed=False debug=False>
+  File "D:\softAI\python\Anaconda\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x0000028C1E3A5DA0>
+    └ <_WindowsSelectorEventLoop running=True closed=False debug=False>
+  File "D:\softAI\python\Anaconda\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x0000028C1E2C8FE0>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000028C23E11D50>()>
+  File "D:\softAI\python\Anaconda\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000028C23E11D50>()>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000028C23E11D50>()>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000028C23E11D50>()>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 421, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+                   └ <uvicorn.middleware.proxy_headers.ProxyHeadersMiddleware object at 0x0000028C1E968830>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 62, in __call__
+    return await self.app(scope, receive, send)
+                 │    │   │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028C23...
+                 │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+                 │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+                 │    └ <fastapi.applications.FastAPI object at 0x0000028C22B03620>
+                 └ <uvicorn.middleware.proxy_headers.ProxyHeadersMiddleware object at 0x0000028C1E968830>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+                           │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028C23...
+                           │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+                           └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+  File "D:\softAI\python\Anaconda\Lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028C23...
+          │    │                │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          │    └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x0000028C23C9C830>
+          └ <fastapi.applications.FastAPI object at 0x0000028C22B03620>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+          │    │   │      │        └ <function ServerErrorMiddleware.__call__.<locals>._send at 0x0000028C23CADB20>
+          │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          │    └ <starlette.middleware.cors.CORSMiddleware object at 0x0000028C23C9C6E0>
+          └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x0000028C23C9C830>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+          │    │               │      │        │                     └ Headers({'host': 'localhost:8000', 'connection': 'close', 'content-length': '124', 'sec-ch-ua-platform': '"Windows"', 'author...
+          │    │               │      │        └ <function ServerErrorMiddleware.__call__.<locals>._send at 0x0000028C23CADB20>
+          │    │               │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │    │               └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          │    └ <function CORSMiddleware.simple_response at 0x0000028C1F89B1A0>
+          └ <starlette.middleware.cors.CORSMiddleware object at 0x0000028C23C9C6E0>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+          │    │   │      │        └ functools.partial(<bound method CORSMiddleware.send of <starlette.middleware.cors.CORSMiddleware object at 0x0000028C23C9C6E0...
+          │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          │    └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x0000028C23C9C590>
+          └ <starlette.middleware.cors.CORSMiddleware object at 0x0000028C23C9C6E0>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+          │                            │    │    │     │      │        └ functools.partial(<bound method CORSMiddleware.send of <starlette.middleware.cors.CORSMiddleware object at 0x0000028C23C9C6E0...
+          │                            │    │    │     │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │                            │    │    │     └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          │                            │    │    └ <starlette.requests.Request object at 0x0000028C22404520>
+          │                            │    └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x0000028C23C9C440>
+          │                            └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x0000028C23C9C590>
+          └ <function wrap_app_handling_exceptions at 0x0000028C1F8259E0>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000028C23D92CA0>
+          │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x0000028C23C9C440>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000028C23D92CA0>
+          │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          │    └ <fastapi.routing.APIRouter object at 0x0000028C23C76250>
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x0000028C23C9C440>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000028C23D92CA0>
+          │    │                │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          │    └ <bound method APIRouter.app of <fastapi.routing.APIRouter object at 0x0000028C23C76250>>
+          └ <fastapi.routing.APIRouter object at 0x0000028C23C76250>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+          │     │      │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000028C23D92CA0>
+          │     │      │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │     │      └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          │     └ <function _IncludedRouter.handle at 0x0000028C1F86C540>
+          └ _IncludedRouter(original_router=<fastapi.routing.APIRouter object at 0x0000028C22C520F0>, include_context=_RouterIncludeConte...
+  File "D:\softAI\python\Anaconda\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+          │    │               │      │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000028C23D92CA0>
+          │    │               │      │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │    │               │      └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          │    │               └ <function APIRouter.handle at 0x0000028C1F86E3E0>
+          │    └ <fastapi.routing.APIRouter object at 0x0000028C22C520F0>
+          └ _IncludedRouter(original_router=<fastapi.routing.APIRouter object at 0x0000028C22C520F0>, include_context=_RouterIncludeConte...
+  File "D:\softAI\python\Anaconda\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+          │               │                │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000028C23D92CA0>
+          │               │                │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │               │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          │               └ <function _IncludedRouter._handle_selected at 0x0000028C1F86C5E0>
+          └ _IncludedRouter(original_router=<fastapi.routing.APIRouter object at 0x0000028C22C520F0>, include_context=_RouterIncludeConte...
+  File "D:\softAI\python\Anaconda\Lib\site-packages\fastapi\routing.py", line 1764, in _handle_selected
+    await route.handle(scope, receive, send)
+          │     │      │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000028C23D92CA0>
+          │     │      │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │     │      └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          │     └ <function _IncludedRouter.handle at 0x0000028C1F86C540>
+          └ _IncludedRouter(original_router=<fastapi.routing.APIRouter object at 0x0000028C22C676F0>, include_context=_RouterIncludeConte...
+  File "D:\softAI\python\Anaconda\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+          │    │               │      │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000028C23D92CA0>
+          │    │               │      │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │    │               │      └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          │    │               └ <function APIRouter.handle at 0x0000028C1F86E3E0>
+          │    └ <fastapi.routing.APIRouter object at 0x0000028C22C676F0>
+          └ _IncludedRouter(original_router=<fastapi.routing.APIRouter object at 0x0000028C22C676F0>, include_context=_RouterIncludeConte...
+  File "D:\softAI\python\Anaconda\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+          │               │                │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000028C23D92CA0>
+          │               │                │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │               │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          │               └ <function _IncludedRouter._handle_selected at 0x0000028C1F86C5E0>
+          └ _IncludedRouter(original_router=<fastapi.routing.APIRouter object at 0x0000028C22C676F0>, include_context=_RouterIncludeConte...
+  File "D:\softAI\python\Anaconda\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+          │              │      │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000028C23D92CA0>
+          │              │      │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │              │      └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          │              └ <function APIRoute.handle at 0x0000028C1F84A520>
+          └ APIRoute(path='/rag/query', name='rag_query', methods=['POST'])
+  File "D:\softAI\python\Anaconda\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000028C23D92CA0>
+          │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          └ <function request_response.<locals>.app at 0x0000028C23E9BEC0>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+          │                            │    │        │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000028C23D92CA0>
+          │                            │    │        │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │                            │    │        └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          │                            │    └ <starlette.requests.Request object at 0x0000028C22404260>
+          │                            └ <function request_response.<locals>.app.<locals>.app at 0x0000028C23E9A660>
+          └ <function wrap_app_handling_exceptions at 0x0000028C1F8259E0>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000028C23EC79C0>
+          │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.httptools_impl.RequestResponseCycle object at 0x0000028...
+          │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('127.0.0.1', 8000), 'cl...
+          └ <function request_response.<locals>.app.<locals>.app at 0x0000028C23E9A660>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+                     │ └ <starlette.requests.Request object at 0x0000028C22404260>
+                     └ <function get_request_handler.<locals>.app at 0x0000028C23E9A7A0>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                         └ <function run_endpoint_function at 0x0000028C1F8498A0>
+  File "D:\softAI\python\Anaconda\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+                 │         │      └ {'current_user': {'sub': '6', 'username': 'user', 'exp': 1783674628}, 'req': RAGRequest(query='python\n', kb_id=3, query_opti...
+                 │         └ <function rag_query at 0x0000028C22C174C0>
+                 └ Dependant(path_params=[], query_params=[], header_params=[], cookie_params=[], body_params=[ModelField(field_info=Body(Pydant...
+
+> File "D:\traecn\aiskills\7.8\agentflow\api\app\api\v1\rag.py", line 17, in rag_query
+    result = await RAGService.query(req)
+                   │          │     └ RAGRequest(query='python\n', kb_id=3, query_optimizer='hyde', llm_model='qwen-plus', top_k=8, rerank_top_n=5, temperature=0.7...
+                   │          └ <staticmethod(<function RAGService.query at 0x0000028C22C17600>)>
+                   └ <class 'app.services.rag_service.RAGService'>
+
+  File "D:\traecn\aiskills\7.8\agentflow\api\app\services\rag_service.py", line 50, in query
+    if not sources:
+
+UnboundLocalError: cannot access local variable 'sources' where it is not associated with a value
+2026-07-10 18:46:34 | INFO     | app.tasks.knowledge_tasks:process_document:19 - Starting process_document for doc_id=13
+2026-07-10 19:00:02 | INFO     | app.utils.vector_store:__init__:30 - Milvus connected: 121.41.105.239:19530/default
+2026-07-10 19:30:17 | INFO     | app.tasks.knowledge_tasks:process_document_sync:21 - Starting process_document for doc_id=18
+2026-07-10 19:30:17 | INFO     | app.tasks.knowledge_tasks:process_document_sync:29 - Document 18 status changed to PARSING
+2026-07-10 19:30:17 | INFO     | app.tasks.knowledge_tasks:process_document_sync:32 - Parsing document 18: D:\traecn\aiskills\7.8\agentflow\api\uploads\c94c103aae0c4416bdc01ce88d78d566.pdf
+2026-07-10 19:30:19 | INFO     | app.tasks.knowledge_tasks:process_document_sync:35 - Document 18 parsed, char_count=23159
+2026-07-10 19:30:19 | INFO     | app.tasks.knowledge_tasks:process_document_sync:44 - Document 18 split into 24 chunks
+2026-07-10 19:30:19 | INFO     | app.tasks.knowledge_tasks:process_document_sync:63 - Document 18 created 24 chunks in DB
+2026-07-10 19:30:19 | INFO     | app.tasks.knowledge_tasks:process_document_sync:67 - Document 18 status changed to EMBEDDING
+2026-07-10 19:30:19 | INFO     | app.tasks.knowledge_tasks:process_document_sync:74 - Document 18 embedding batch 1/2
+2026-07-10 19:30:21 | INFO     | app.tasks.knowledge_tasks:process_document_sync:81 - Document 18 got 20 embeddings for batch
+2026-07-10 19:30:22 | INFO     | app.utils.vector_store:__init__:30 - Milvus connected: 121.41.105.239:19530/default
+2026-07-10 19:30:25 | INFO     | app.utils.vector_store:add:116 - Milvus inserted 20 vectors into agentflow_chunks
+2026-07-10 19:30:25 | INFO     | app.tasks.knowledge_tasks:process_document_sync:95 - Document 18 batch 1 stored to Milvus
+2026-07-10 19:30:25 | INFO     | app.tasks.knowledge_tasks:process_document_sync:74 - Document 18 embedding batch 2/2
+2026-07-10 19:30:25 | INFO     | app.tasks.knowledge_tasks:process_document_sync:81 - Document 18 got 4 embeddings for batch
+2026-07-10 19:30:33 | INFO     | app.utils.vector_store:add:116 - Milvus inserted 4 vectors into agentflow_chunks
+2026-07-10 19:30:33 | INFO     | app.tasks.knowledge_tasks:process_document_sync:95 - Document 18 batch 2 stored to Milvus
+2026-07-10 19:30:33 | INFO     | app.tasks.knowledge_tasks:process_document_sync:99 - Document 18 completed: char_count=23159, chunk_count=24
+2026-07-10 19:30:33 | INFO     | app.tasks.knowledge_tasks:process_document_sync:104 - KnowledgeBase 5 chunk_count updated to 24
+2026-07-10 19:30:33 | INFO     | app.tasks.knowledge_tasks:process_document_sync:107 - Document 18 process completed successfully
+2026-07-10 19:33:36 | INFO     | app.utils.vector_store:__init__:30 - Milvus connected: 121.41.105.239:19530/default
+2026-07-10 19:33:36 | INFO     | app.utils.vector_store:delete_by_ids:167 - Milvus deleted 24 vectors
+2026-07-10 19:33:57 | INFO     | app.tasks.knowledge_tasks:process_document_sync:21 - Starting process_document for doc_id=19
+2026-07-10 19:33:58 | INFO     | app.tasks.knowledge_tasks:process_document_sync:29 - Document 19 status changed to PARSING
+2026-07-10 19:33:58 | INFO     | app.tasks.knowledge_tasks:process_document_sync:32 - Parsing document 19: D:\traecn\aiskills\7.8\agentflow\api\uploads\579daf9fdac0402782615aa1184c86fd.pdf
+2026-07-10 19:33:59 | INFO     | app.tasks.knowledge_tasks:process_document_sync:35 - Document 19 parsed, char_count=23159
+2026-07-10 19:33:59 | INFO     | app.tasks.knowledge_tasks:process_document_sync:44 - Document 19 split into 24 chunks
+2026-07-10 19:33:59 | INFO     | app.tasks.knowledge_tasks:process_document_sync:63 - Document 19 created 24 chunks in DB
+2026-07-10 19:33:59 | INFO     | app.tasks.knowledge_tasks:process_document_sync:67 - Document 19 status changed to EMBEDDING
+2026-07-10 19:33:59 | INFO     | app.tasks.knowledge_tasks:process_document_sync:74 - Document 19 embedding batch 1/2
+2026-07-10 19:34:00 | INFO     | app.tasks.knowledge_tasks:process_document_sync:81 - Document 19 got 20 embeddings for batch
+2026-07-10 19:34:03 | INFO     | app.utils.vector_store:add:116 - Milvus inserted 20 vectors into agentflow_chunks
+2026-07-10 19:34:03 | INFO     | app.tasks.knowledge_tasks:process_document_sync:95 - Document 19 batch 1 stored to Milvus
+2026-07-10 19:34:03 | INFO     | app.tasks.knowledge_tasks:process_document_sync:74 - Document 19 embedding batch 2/2
+2026-07-10 19:34:03 | INFO     | app.tasks.knowledge_tasks:process_document_sync:81 - Document 19 got 4 embeddings for batch
+2026-07-10 19:34:11 | INFO     | app.utils.vector_store:add:116 - Milvus inserted 4 vectors into agentflow_chunks
+2026-07-10 19:34:11 | INFO     | app.tasks.knowledge_tasks:process_document_sync:95 - Document 19 batch 2 stored to Milvus
+2026-07-10 19:34:11 | INFO     | app.tasks.knowledge_tasks:process_document_sync:99 - Document 19 completed: char_count=23159, chunk_count=24
+2026-07-10 19:34:11 | INFO     | app.tasks.knowledge_tasks:process_document_sync:104 - KnowledgeBase 5 chunk_count updated to 48
+2026-07-10 19:34:11 | INFO     | app.tasks.knowledge_tasks:process_document_sync:107 - Document 19 process completed successfully
+2026-07-10 19:51:39 | INFO     | app.tasks.knowledge_tasks:process_document_sync:21 - Starting process_document for doc_id=21
+2026-07-10 19:51:39 | INFO     | app.tasks.knowledge_tasks:process_document_sync:29 - Document 21 status changed to PARSING
+2026-07-10 19:51:39 | INFO     | app.tasks.knowledge_tasks:process_document_sync:32 - Parsing document 21: D:\traecn\aiskills\7.8\agentflow\api\uploads\93129844107245cda62acc2f8fe1d1c8.pdf
+2026-07-10 19:51:40 | INFO     | app.tasks.knowledge_tasks:process_document_sync:35 - Document 21 parsed, char_count=10184
+2026-07-10 19:51:40 | INFO     | app.tasks.knowledge_tasks:process_document_sync:44 - Document 21 split into 10 chunks
+2026-07-10 19:51:40 | INFO     | app.tasks.knowledge_tasks:process_document_sync:63 - Document 21 created 10 chunks in DB
+2026-07-10 19:51:40 | INFO     | app.tasks.knowledge_tasks:process_document_sync:67 - Document 21 status changed to EMBEDDING
+2026-07-10 19:51:40 | INFO     | app.tasks.knowledge_tasks:process_document_sync:74 - Document 21 embedding batch 1/1
+2026-07-10 19:51:42 | INFO     | app.tasks.knowledge_tasks:process_document_sync:81 - Document 21 got 10 embeddings for batch
+2026-07-10 19:51:42 | INFO     | app.utils.vector_store:__init__:30 - Milvus connected: 121.41.105.239:19530/default
+2026-07-10 19:51:45 | INFO     | app.utils.vector_store:add:116 - Milvus inserted 10 vectors into agentflow_chunks
+2026-07-10 19:51:45 | INFO     | app.tasks.knowledge_tasks:process_document_sync:95 - Document 21 batch 1 stored to Milvus
+2026-07-10 19:51:45 | INFO     | app.tasks.knowledge_tasks:process_document_sync:99 - Document 21 completed: char_count=10184, chunk_count=10
+2026-07-10 19:51:45 | INFO     | app.tasks.knowledge_tasks:process_document_sync:104 - KnowledgeBase 5 chunk_count updated to 58
+2026-07-10 19:51:45 | INFO     | app.tasks.knowledge_tasks:process_document_sync:107 - Document 21 process completed successfully
+2026-07-10 20:44:15 | INFO     | app.tasks.knowledge_tasks:process_document_sync:21 - Starting process_document for doc_id=29
+2026-07-10 20:44:15 | INFO     | app.tasks.knowledge_tasks:process_document_sync:29 - Document 29 status changed to PARSING
+2026-07-10 20:44:15 | INFO     | app.tasks.knowledge_tasks:process_document_sync:32 - Parsing document 29: D:\traecn\aiskills\7.8\agentflow\api\uploads\80e1c2e9db0f411994a1d296ee604bf4.pdf
+2026-07-10 20:44:17 | INFO     | app.tasks.knowledge_tasks:process_document_sync:35 - Document 29 parsed, char_count=19590
+2026-07-10 20:44:17 | INFO     | app.tasks.knowledge_tasks:process_document_sync:44 - Document 29 split into 18 chunks
+2026-07-10 20:44:17 | INFO     | app.tasks.knowledge_tasks:process_document_sync:64 - Document 29 created 18 chunks in DB
+2026-07-10 20:44:17 | INFO     | app.tasks.knowledge_tasks:process_document_sync:68 - Document 29 status changed to EMBEDDING
+2026-07-10 20:44:17 | INFO     | app.tasks.knowledge_tasks:process_document_sync:75 - Document 29 embedding batch 1/1
+2026-07-10 20:44:19 | INFO     | app.tasks.knowledge_tasks:process_document_sync:82 - Document 29 got 18 embeddings for batch
+2026-07-10 20:44:20 | INFO     | app.utils.vector_store:__init__:30 - Milvus connected: 121.41.105.239:19530/default
+2026-07-10 20:44:23 | INFO     | app.utils.vector_store:add:116 - Milvus inserted 18 vectors into agentflow_chunks
+2026-07-10 20:44:23 | INFO     | app.tasks.knowledge_tasks:process_document_sync:96 - Document 29 batch 1 stored to Milvus
+2026-07-10 20:44:23 | INFO     | app.tasks.knowledge_tasks:process_document_sync:100 - Document 29 completed: char_count=19590, chunk_count=18
+2026-07-10 20:44:23 | INFO     | app.tasks.knowledge_tasks:process_document_sync:105 - KnowledgeBase 5 chunk_count updated to 76
+2026-07-10 20:44:23 | INFO     | app.tasks.knowledge_tasks:process_document_sync:108 - Document 29 process completed successfully
+2026-07-10 20:55:41 | INFO     | app.tasks.knowledge_tasks:process_document_sync:21 - Starting process_document for doc_id=30
+2026-07-10 20:55:41 | INFO     | app.tasks.knowledge_tasks:process_document_sync:29 - Document 30 status changed to PARSING
+2026-07-10 20:55:41 | INFO     | app.tasks.knowledge_tasks:process_document_sync:32 - Parsing document 30: D:\traecn\aiskills\7.8\agentflow\api\uploads\f4877040b7c043ad95cd88f5572bd9d8.pdf
+2026-07-10 20:56:04 | INFO     | app.tasks.knowledge_tasks:process_document_sync:35 - Document 30 parsed, char_count=9977
+2026-07-10 20:56:04 | INFO     | app.tasks.knowledge_tasks:process_document_sync:44 - Document 30 split into 9 chunks
+2026-07-10 20:56:04 | INFO     | app.tasks.knowledge_tasks:process_document_sync:64 - Document 30 created 9 chunks in DB
+2026-07-10 20:56:04 | INFO     | app.tasks.knowledge_tasks:process_document_sync:68 - Document 30 status changed to EMBEDDING
+2026-07-10 20:56:04 | INFO     | app.tasks.knowledge_tasks:process_document_sync:75 - Document 30 embedding batch 1/1
+2026-07-10 20:56:05 | INFO     | app.tasks.knowledge_tasks:process_document_sync:82 - Document 30 got 9 embeddings for batch
+2026-07-10 20:56:08 | INFO     | app.utils.vector_store:add:116 - Milvus inserted 9 vectors into agentflow_chunks
+2026-07-10 20:56:08 | INFO     | app.tasks.knowledge_tasks:process_document_sync:96 - Document 30 batch 1 stored to Milvus
+2026-07-10 20:56:08 | INFO     | app.tasks.knowledge_tasks:process_document_sync:100 - Document 30 completed: char_count=9977, chunk_count=9
+2026-07-10 20:56:08 | INFO     | app.tasks.knowledge_tasks:process_document_sync:105 - KnowledgeBase 5 chunk_count updated to 85
+2026-07-10 20:56:08 | INFO     | app.tasks.knowledge_tasks:process_document_sync:108 - Document 30 process completed successfully
+2026-07-10 21:01:44 | INFO     | app.tasks.knowledge_tasks:process_document_sync:21 - Starting process_document for doc_id=32
+2026-07-10 21:01:44 | INFO     | app.tasks.knowledge_tasks:process_document_sync:29 - Document 32 status changed to PARSING
+2026-07-10 21:01:44 | INFO     | app.tasks.knowledge_tasks:process_document_sync:32 - Parsing document 32: D:\traecn\aiskills\7.8\agentflow\api\uploads\8489dd7020074850b38aab1ec985180f.md
+2026-07-10 21:01:44 | INFO     | app.tasks.knowledge_tasks:process_document_sync:35 - Document 32 parsed, char_count=11713
+2026-07-10 21:01:44 | INFO     | app.tasks.knowledge_tasks:process_document_sync:44 - Document 32 split into 12 chunks
+2026-07-10 21:01:44 | INFO     | app.tasks.knowledge_tasks:process_document_sync:64 - Document 32 created 12 chunks in DB
+2026-07-10 21:01:44 | INFO     | app.tasks.knowledge_tasks:process_document_sync:68 - Document 32 status changed to EMBEDDING
+2026-07-10 21:01:44 | INFO     | app.tasks.knowledge_tasks:process_document_sync:75 - Document 32 embedding batch 1/1
+2026-07-10 21:01:46 | WARNING  | app.services.llm_service:get_embeddings:83 - Embedding API failed, fallback to local hash: Error code: 400 - {'error': {'message': '<400> InternalError.Algo.InvalidParameter: Value error, batch size is invalid, it should not be larger than 10.: input.contents', 'type': 'InvalidParameter', 'param': None, 'code': 'InvalidParameter'}, 'id': 'd92207d9-c517-9fca-9d54-07a50b22cdc5', 'request_id': 'd92207d9-c517-9fca-9d54-07a50b22cdc5'}
+2026-07-10 21:01:46 | INFO     | app.tasks.knowledge_tasks:process_document_sync:82 - Document 32 got 12 embeddings for batch
+2026-07-10 21:01:47 | INFO     | app.utils.vector_store:__init__:30 - Milvus connected: 121.41.105.239:19530/default
+2026-07-10 21:01:50 | INFO     | app.utils.vector_store:add:116 - Milvus inserted 12 vectors into agentflow_chunks
+2026-07-10 21:01:50 | INFO     | app.tasks.knowledge_tasks:process_document_sync:96 - Document 32 batch 1 stored to Milvus
+2026-07-10 21:01:50 | INFO     | app.tasks.knowledge_tasks:process_document_sync:100 - Document 32 completed: char_count=11713, chunk_count=12
+2026-07-10 21:01:50 | INFO     | app.tasks.knowledge_tasks:process_document_sync:105 - KnowledgeBase 1 chunk_count updated to 12
+2026-07-10 21:01:50 | INFO     | app.tasks.knowledge_tasks:process_document_sync:108 - Document 32 process completed successfully
+2026-07-10 21:02:41 | INFO     | app.tasks.knowledge_tasks:process_document_sync:21 - Starting process_document for doc_id=33
+2026-07-10 21:02:41 | INFO     | app.tasks.knowledge_tasks:process_document_sync:29 - Document 33 status changed to PARSING
+2026-07-10 21:02:41 | INFO     | app.tasks.knowledge_tasks:process_document_sync:32 - Parsing document 33: D:\traecn\aiskills\7.8\agentflow\api\uploads\68c7bcc5ea524831aa074cf65331fa86.md
+2026-07-10 21:02:41 | INFO     | app.tasks.knowledge_tasks:process_document_sync:35 - Document 33 parsed, char_count=9921
+2026-07-10 21:02:41 | INFO     | app.tasks.knowledge_tasks:process_document_sync:44 - Document 33 split into 11 chunks
+2026-07-10 21:02:41 | INFO     | app.tasks.knowledge_tasks:process_document_sync:64 - Document 33 created 11 chunks in DB
+2026-07-10 21:02:41 | INFO     | app.tasks.knowledge_tasks:process_document_sync:68 - Document 33 status changed to EMBEDDING
+2026-07-10 21:02:41 | INFO     | app.tasks.knowledge_tasks:process_document_sync:75 - Document 33 embedding batch 1/1
+2026-07-10 21:02:42 | WARNING  | app.services.llm_service:get_embeddings:83 - Embedding API failed, fallback to local hash: Error code: 400 - {'error': {'message': '<400> InternalError.Algo.InvalidParameter: Value error, batch size is invalid, it should not be larger than 10.: input.contents', 'type': 'InvalidParameter', 'param': None, 'code': 'InvalidParameter'}, 'id': '1adf5cf7-dee7-9e7b-91e4-4ffc02ece5a2', 'request_id': '1adf5cf7-dee7-9e7b-91e4-4ffc02ece5a2'}
+2026-07-10 21:02:42 | INFO     | app.tasks.knowledge_tasks:process_document_sync:82 - Document 33 got 11 embeddings for batch
+2026-07-10 21:02:45 | INFO     | app.utils.vector_store:add:116 - Milvus inserted 11 vectors into agentflow_chunks
+2026-07-10 21:02:45 | INFO     | app.tasks.knowledge_tasks:process_document_sync:96 - Document 33 batch 1 stored to Milvus
+2026-07-10 21:02:45 | INFO     | app.tasks.knowledge_tasks:process_document_sync:100 - Document 33 completed: char_count=9921, chunk_count=11
+2026-07-10 21:02:45 | INFO     | app.tasks.knowledge_tasks:process_document_sync:105 - KnowledgeBase 1 chunk_count updated to 23
+2026-07-10 21:02:45 | INFO     | app.tasks.knowledge_tasks:process_document_sync:108 - Document 33 process completed successfully
+2026-07-10 21:03:03 | INFO     | app.tasks.knowledge_tasks:process_document_sync:21 - Starting process_document for doc_id=34
+2026-07-10 21:03:03 | INFO     | app.tasks.knowledge_tasks:process_document_sync:29 - Document 34 status changed to PARSING
+2026-07-10 21:03:03 | INFO     | app.tasks.knowledge_tasks:process_document_sync:32 - Parsing document 34: D:\traecn\aiskills\7.8\agentflow\api\uploads\2843272420434ce69730b409c501de97.md
+2026-07-10 21:03:03 | INFO     | app.tasks.knowledge_tasks:process_document_sync:35 - Document 34 parsed, char_count=1526
+2026-07-10 21:03:03 | INFO     | app.tasks.knowledge_tasks:process_document_sync:44 - Document 34 split into 2 chunks
+2026-07-10 21:03:03 | INFO     | app.tasks.knowledge_tasks:process_document_sync:64 - Document 34 created 2 chunks in DB
+2026-07-10 21:03:03 | INFO     | app.tasks.knowledge_tasks:process_document_sync:68 - Document 34 status changed to EMBEDDING
+2026-07-10 21:03:03 | INFO     | app.tasks.knowledge_tasks:process_document_sync:75 - Document 34 embedding batch 1/1
+2026-07-10 21:03:04 | INFO     | app.tasks.knowledge_tasks:process_document_sync:82 - Document 34 got 2 embeddings for batch
+2026-07-10 21:03:07 | INFO     | app.utils.vector_store:add:116 - Milvus inserted 2 vectors into agentflow_chunks
+2026-07-10 21:03:07 | INFO     | app.tasks.knowledge_tasks:process_document_sync:96 - Document 34 batch 1 stored to Milvus
+2026-07-10 21:03:07 | INFO     | app.tasks.knowledge_tasks:process_document_sync:100 - Document 34 completed: char_count=1526, chunk_count=2
+2026-07-10 21:03:07 | INFO     | app.tasks.knowledge_tasks:process_document_sync:105 - KnowledgeBase 1 chunk_count updated to 25
+2026-07-10 21:03:07 | INFO     | app.tasks.knowledge_tasks:process_document_sync:108 - Document 34 process completed successfully

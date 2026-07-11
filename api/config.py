@@ -1,11 +1,23 @@
 import toml
 from urllib.parse import quote_plus
 from pathlib import Path
-from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# 显式加载 .env 到环境变量（必须在 Settings 之前）
+_ENV_PATH = Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=str(_ENV_PATH), override=True)
 
 
 class Settings(BaseSettings):
-    """全局配置，从 settings.toml 加载"""
+    """全局配置，从 settings.toml 和环境变量加载"""
+
+    model_config = SettingsConfigDict(
+        env_file=str(_ENV_PATH),
+        env_file_encoding="utf-8",
+        extra="ignore",
+        case_sensitive=True,
+    )
 
     # App
     APP_NAME: str = "AgentFlow"
@@ -41,18 +53,38 @@ class Settings(BaseSettings):
     OSS_REGION: str = ""
 
     # LLM
-    LLM_PROVIDER: str = "openai"
+    DASHSCOPE_API_KEY: str = ""
+    DASHSCOPE_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    LLM_PROVIDER: str = "dashscope"
     LLM_API_KEY: str = ""
-    LLM_API_BASE: str = "https://api.openai.com/v1"
-    LLM_MODEL: str = "gpt-3.5-turbo"
-    LLM_EMBEDDING_MODEL: str = "text-embedding-ada-002"
+    LLM_API_BASE: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    LLM_MODEL: str = "qwen-plus"
+    LLM_EMBEDDING_MODEL: str = "text-embedding-v4"
+    LLM_EMBEDDING_API_KEY: str = ""
+    LLM_EMBEDDING_BASE: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    LLM_EMBEDDING_DIM: int = 1024
     LLM_MAX_TOKENS: int = 2048
     LLM_TEMPERATURE: float = 0.7
+    LLM_RERANK_MODEL: str = "gte-rerank-v2"
 
     # Vector Store
-    VECTOR_STORE_TYPE: str = "faiss"
+    VECTOR_STORE_TYPE: str = "milvus"
     VECTOR_FAISS_INDEX_PATH: str = "./data/faiss_index"
-    VECTOR_DIMENSION: int = 1536
+    VECTOR_DIMENSION: int = 1024
+
+    # Milvus
+    MILVUS_HOST: str = "localhost"
+    MILVUS_PORT: int = 19530
+    MILVUS_USER: str = ""
+    MILVUS_PASSWORD: str = ""
+    MILVUS_DB: str = "default"
+    MILVUS_COLLECTION: str = "agentflow_chunks"
+
+    # Logging
+    LOG_DIR: str = "../logs"
+    LOG_LEVEL: str = "INFO"
+    LOG_ROTATION: str = "10 MB"
+    LOG_RETENTION: str = "30 days"
 
     @property
     def database_url(self) -> str:
@@ -68,12 +100,9 @@ class Settings(BaseSettings):
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         )
 
-    class Config:
-        env_prefix = "AF_"
-
 
 def load_settings() -> Settings:
-    """从 settings.toml 加载配置并覆盖到 Settings"""
+    """从 settings.toml 和 .env 加载配置"""
     s = Settings()
     config_path = Path(__file__).parent / "settings.toml"
     if config_path.exists():

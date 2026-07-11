@@ -1,12 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime
+import os
+import uuid
 
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate, UserOut, ChangePassword
+from app.schemas.user import UserCreate, UserUpdate, UserOut
 from app.core.response import ResponseModel
-from app.core.security import get_current_user, hash_password, verify_password
+from app.core.security import get_current_user, hash_password
 
 router = APIRouter(prefix="/users", tags=["用户"], dependencies=[Depends(get_current_user)])
 
@@ -87,6 +90,8 @@ async def update_me(
         update_data["email"] = update_data["email"].strip().lower()
     if "nickname" in update_data:
         update_data["nickname"] = update_data["nickname"].strip()
+    if "password" in update_data:
+        update_data["hashed_password"] = hash_password(update_data.pop("password"))
 
     # 3 操作数据库
     # 3.1 根据用户 ID 查询 users 表数据
@@ -107,40 +112,41 @@ async def update_me(
     return ResponseModel.ok(data=UserOut.model_validate(user))
 
 
-@router.post("/me/change-password", response_model=ResponseModel)
-async def change_password(
-    req: ChangePassword,
+@router.post("/me/avatar", response_model=ResponseModel[dict])
+async def upload_avatar(
+    file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     # 1 获取参数
     user_id = int(current_user["sub"])
-    old_password = req.old_password
-    new_password = req.new_password
-    confirm_password = req.confirm_password
 
-    # 2 过滤参数（无需过滤）
+    # 2 验证文件
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="请选择文件")
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in [".jpg", ".jpeg", ".png", ".gif", ".webp"]:
+        raise HTTPException(status_code=400, detail="只支持图片格式")
 
-    # 3 操作数据库
-    # 3.1 根据用户 ID 查询 users 表数据
+    # 3 保存文件
+    # Must match the StaticFiles mount in main.py: os.path.dirname(__file__) = api/, then "uploads"
+    api_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    upload_dir = os.path.join(api_root, "uploads", "avatars")
+    os.makedirs(upload_dir, exist_ok=True)
+    filename = f"{uuid.uuid4()}{ext}"
+    file_path = os.path.join(upload_dir, filename)
+    content = await file.read()
+    with open(file_path, "wb") as f:
+        f.write(content)
+
+    # 4 更新数据库
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-
-    # 3.2 判断用户是否存在  不存在就返回用户不存在
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在！")
+    user.avatar = f"/uploads/avatars/{filename}"
+    await db.commit()
+    await db.refresh(user)
 
-    # 3.3 存在则继续 判断旧密码是否正确
-    if not verify_password(old_password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="旧密码错误！")
-
-    # 3.4 旧密码正确则继续 判断新密码是否一致
-    if new_password != confirm_password:
-        raise HTTPException(status_code=400, detail="两次密码不一致！")
-
-    # 3.5 一致则继续 更新密码
-    user.hashed_password = hash_password(new_password)
-    await db.flush()
-
-    # 4 返回数据
-    return ResponseModel.ok(message="密码修改成功")
+    # 5 返回数据
+    return ResponseModel.ok(data={"url": user.avatar})

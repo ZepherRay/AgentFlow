@@ -13,9 +13,9 @@ function clearToken() {
 }
 
 async function request(url, options = {}) {
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers
+  const headers = { ...options.headers }
+  if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json'
   }
   const token = getToken()
   if (token) {
@@ -25,6 +25,13 @@ async function request(url, options = {}) {
     ...options,
     headers
   })
+  if (response.status === 401) {
+    clearToken()
+    if (!window.location.pathname.startsWith('/login')) {
+      window.location.href = '/login'
+    }
+    throw new Error('登录已失效，请重新登录')
+  }
   const data = await response.json()
   if (!response.ok) {
     throw new Error(data.message || data.detail || '请求失败')
@@ -45,47 +52,19 @@ export const api = {
     getMe: () => request('/auth/me')
   },
   users: {
-    getMe: () => request('/users/me'),
     updateMe: (data) => request('/users/me', {
       method: 'PUT',
       body: JSON.stringify(data)
     }),
-    changePassword: (data) => request('/users/me/change-password', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    })
-  },
-  agents: {
-    list: () => request('/agents'),
-    create: (data) => request('/agents', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }),
-    get: (id) => request(`/agents/${id}`),
-    update: (id, data) => request(`/agents/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
-    }),
-    delete: (ids) => request('/agents/delete', {
-      method: 'POST',
-      body: JSON.stringify({ ids })
-    })
-  },
-  workflows: {
-    list: () => request('/workflows'),
-    create: (data) => request('/workflows', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }),
-    get: (id) => request(`/workflows/${id}`),
-    update: (id, data) => request(`/workflows/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
-    }),
-    delete: (ids) => request('/workflows/delete', {
-      method: 'POST',
-      body: JSON.stringify({ ids })
-    })
+    uploadAvatar: (file) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      return request('/users/me/avatar', {
+        method: 'POST',
+        body: formData,
+        headers: {}
+      })
+    }
   },
   knowledge: {
     list: () => request('/knowledge/bases'),
@@ -124,7 +103,32 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data)
     }),
-    listChunks: (docId) => request(`/knowledge/documents/${docId}/chunks`),
+    listChunks: (docId, page, pageSize) => {
+      const params = new URLSearchParams()
+      params.append('page', page || 1)
+      params.append('page_size', pageSize || 10)
+      return request(`/knowledge/documents/${docId}/chunks?${params.toString()}`)
+    },
+    reprocessDocument: (docId) => request(`/knowledge/documents/${docId}/reprocess`, {
+      method: 'POST'
+    }),
+    downloadDocument: async (docId) => {
+      const token = getToken()
+      const url = `${BASE_URL}/knowledge/documents/${docId}/download`
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (!response.ok) throw new Error('下载失败')
+      const blob = await response.blob()
+      const blobUrl = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.style.display = 'none'
+      document.body.appendChild(link)
+      link.click()
+      URL.revokeObjectURL(blobUrl)
+      document.body.removeChild(link)
+    },
     updateChunk: (chunkId, data) => request(`/knowledge/chunks/${chunkId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
@@ -141,7 +145,32 @@ export const api = {
     search: (data) => request('/knowledge/search', {
       method: 'POST',
       body: JSON.stringify(data)
-    })
+    }),
+    uploadIcon: (kbId, file) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      return request(`/knowledge/bases/${kbId}/icon`, {
+        method: 'POST',
+        body: formData,
+        headers: {}
+      })
+    },
+    uploadTempIcon: (file) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      return request('/knowledge/bases/icon/temp', {
+        method: 'POST',
+        body: formData,
+        headers: {}
+      })
+    }
+  },
+  rag: {
+    query: (data) => request('/rag/query', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+    models: () => request('/rag/models')
   },
   getToken,
   setToken,

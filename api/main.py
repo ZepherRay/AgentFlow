@@ -1,6 +1,16 @@
+"""AgentFlow API Server."""
+import sys
+import io
+
+# Force UTF-8 for stdout/stderr (fix Windows GBK crash on Unicode chars)
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
+import os
 
 from config import settings
 from app.core.logger import setup_logger
@@ -34,6 +44,10 @@ app.add_middleware(
 
 register_exception_handlers(app)
 app.include_router(api_router, prefix="/api")
+
+uploads_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
+os.makedirs(uploads_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 
 @app.get("/")

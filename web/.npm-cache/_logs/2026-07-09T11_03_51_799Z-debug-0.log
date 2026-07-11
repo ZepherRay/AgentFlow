@@ -1,0 +1,252 @@
+0 verbose cli D:\softAI\Node.js\node.exe D:\softAI\Node.js\node_modules\npm\bin\npm-cli.js
+1 info using npm@11.16.0
+2 info using node@v26.3.1
+3 silly config load:file:D:\softAI\Node.js\node_modules\npm\npmrc
+4 silly config load:file:d:\traecn\aiskills\7.8\agentflow\web\.npmrc
+5 silly config load:file:C:\Users\20107\.npmrc
+6 silly config load:file:D:\softAI\Node.js\node_global\etc\npmrc
+7 verbose title npm install
+8 verbose argv "install" "--cache" "d:\\traecn\\aiskills\\7.8\\agentflow\\web\\.npm-cache"
+9 verbose logfile logs-max:10 dir:d:\traecn\aiskills\7.8\agentflow\web\.npm-cache\_logs\2026-07-09T11_03_51_799Z-
+10 verbose logfile d:\traecn\aiskills\7.8\agentflow\web\.npm-cache\_logs\2026-07-09T11_03_51_799Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:4395630592 maxSize:1098907648 maxEntrySize:549453824
+13 silly idealTree buildDeps
+14 silly reify mark retired [ 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\esbuild' ]
+15 silly reify mark retired [
+15 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\picomatch'
+15 silly reify ]
+16 silly reify mark retired [ 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\vite' ]
+17 silly reify mark retired [ 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\vue' ]
+18 silly reify mark retired [
+18 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@esbuild\\win32-x64'
+18 silly reify ]
+19 silly reify mark retired [
+19 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\compiler-core'
+19 silly reify ]
+20 silly reify mark retired [
+20 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\compiler-dom'
+20 silly reify ]
+21 silly reify mark retired [
+21 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\compiler-ssr'
+21 silly reify ]
+22 silly reify mark retired [
+22 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\compiler-sfc'
+22 silly reify ]
+23 silly reify mark retired [
+23 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\reactivity'
+23 silly reify ]
+24 silly reify mark retired [
+24 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\runtime-core'
+24 silly reify ]
+25 silly reify mark retired [
+25 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\runtime-dom'
+25 silly reify ]
+26 silly reify mark retired [
+26 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\server-renderer'
+26 silly reify ]
+27 silly reify mark retired [
+27 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\shared'
+27 silly reify ]
+28 silly reify mark retired [
+28 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\nanoid',
+28 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\nanoid',
+28 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\nanoid.cmd',
+28 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\nanoid.ps1'
+28 silly reify ]
+29 silly reify mark retired [
+29 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\rollup',
+29 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\rollup',
+29 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\rollup.cmd',
+29 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\rollup.ps1'
+29 silly reify ]
+30 silly reify mark retired [
+30 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@babel\\parser',
+30 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\parser',
+30 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\parser.cmd',
+30 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\parser.ps1'
+30 silly reify ]
+31 silly reify moves {
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\esbuild': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.esbuild-uvqTJ73P',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\picomatch': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.picomatch-QdwuP7e6',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\vite': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.vite-LX1gzzjK',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\vue': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.vue-NszxiZk1',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@esbuild\\win32-x64': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@esbuild\\.win32-x64-bf2yo5jV',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\compiler-core': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\.compiler-core-SL3moi3v',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\compiler-dom': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\.compiler-dom-lOuRR53b',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\compiler-ssr': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\.compiler-ssr-IyL1FTME',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\compiler-sfc': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\.compiler-sfc-5RIyxMaE',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\reactivity': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\.reactivity-ZDqDRMk5',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\runtime-core': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\.runtime-core-VwxGKVTQ',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\runtime-dom': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\.runtime-dom-lqBnnUSZ',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\server-renderer': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\.server-renderer-3WZnfzFQ',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\shared': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@vue\\.shared-tWn8DDl6',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\nanoid': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.nanoid-2MVm4Mj0',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\nanoid': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\.nanoid-V3FF187j',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\nanoid.cmd': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\.nanoid.cmd-kC190fKT',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\nanoid.ps1': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\.nanoid.ps1-VCyAHMhK',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\rollup': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.rollup-cXRdWzcI',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\rollup': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\.rollup-NPqGyaLt',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\rollup.cmd': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\.rollup.cmd-36O9KPwF',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\rollup.ps1': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\.rollup.ps1-Uk2xdHs5',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@babel\\parser': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\@babel\\.parser-mw80fjKb',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\parser': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\.parser-mHXqOb07',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\parser.cmd': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\.parser.cmd-2EbYp2w5',
+31 silly reify   'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\parser.ps1': 'd:\\traecn\\aiskills\\7.8\\agentflow\\web\\node_modules\\.bin\\.parser.ps1-6RGZ8ClM'
+31 silly reify }
+32 silly audit bulk request {
+32 silly audit   '@babel/helper-string-parser': [ '7.29.7' ],
+32 silly audit   '@babel/helper-validator-identifier': [ '7.29.7' ],
+32 silly audit   '@babel/parser': [ '7.29.7' ],
+32 silly audit   '@babel/types': [ '7.29.7' ],
+32 silly audit   '@ctrl/tinycolor': [ '4.2.0' ],
+32 silly audit   '@element-plus/icons-vue': [ '2.3.2' ],
+32 silly audit   '@esbuild/aix-ppc64': [ '0.25.12' ],
+32 silly audit   '@esbuild/android-arm': [ '0.25.12' ],
+32 silly audit   '@esbuild/android-arm64': [ '0.25.12' ],
+32 silly audit   '@esbuild/android-x64': [ '0.25.12' ],
+32 silly audit   '@esbuild/darwin-arm64': [ '0.25.12' ],
+32 silly audit   '@esbuild/darwin-x64': [ '0.25.12' ],
+32 silly audit   '@esbuild/freebsd-arm64': [ '0.25.12' ],
+32 silly audit   '@esbuild/freebsd-x64': [ '0.25.12' ],
+32 silly audit   '@esbuild/linux-arm': [ '0.25.12' ],
+32 silly audit   '@esbuild/linux-arm64': [ '0.25.12' ],
+32 silly audit   '@esbuild/linux-ia32': [ '0.25.12' ],
+32 silly audit   '@esbuild/linux-loong64': [ '0.25.12' ],
+32 silly audit   '@esbuild/linux-mips64el': [ '0.25.12' ],
+32 silly audit   '@esbuild/linux-ppc64': [ '0.25.12' ],
+32 silly audit   '@esbuild/linux-riscv64': [ '0.25.12' ],
+32 silly audit   '@esbuild/linux-s390x': [ '0.25.12' ],
+32 silly audit   '@esbuild/linux-x64': [ '0.25.12' ],
+32 silly audit   '@esbuild/netbsd-arm64': [ '0.25.12' ],
+32 silly audit   '@esbuild/netbsd-x64': [ '0.25.12' ],
+32 silly audit   '@esbuild/openbsd-arm64': [ '0.25.12' ],
+32 silly audit   '@esbuild/openbsd-x64': [ '0.25.12' ],
+32 silly audit   '@esbuild/openharmony-arm64': [ '0.25.12' ],
+32 silly audit   '@esbuild/sunos-x64': [ '0.25.12' ],
+32 silly audit   '@esbuild/win32-arm64': [ '0.25.12' ],
+32 silly audit   '@esbuild/win32-ia32': [ '0.25.12' ],
+32 silly audit   '@esbuild/win32-x64': [ '0.25.12' ],
+32 silly audit   '@floating-ui/core': [ '1.7.5' ],
+32 silly audit   '@floating-ui/dom': [ '1.7.6' ],
+32 silly audit   '@floating-ui/utils': [ '0.2.11' ],
+32 silly audit   '@jridgewell/sourcemap-codec': [ '1.5.5' ],
+32 silly audit   '@sxzz/popperjs-es': [ '2.11.8' ],
+32 silly audit   '@rollup/rollup-android-arm-eabi': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-android-arm64': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-darwin-arm64': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-darwin-x64': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-freebsd-arm64': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-freebsd-x64': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-linux-arm-gnueabihf': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-linux-arm-musleabihf': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-linux-arm64-gnu': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-linux-arm64-musl': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-linux-loong64-gnu': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-linux-loong64-musl': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-linux-ppc64-gnu': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-linux-ppc64-musl': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-linux-riscv64-gnu': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-linux-riscv64-musl': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-linux-s390x-gnu': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-linux-x64-gnu': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-linux-x64-musl': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-openbsd-x64': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-openharmony-arm64': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-win32-arm64-msvc': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-win32-ia32-msvc': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-win32-x64-gnu': [ '4.62.2' ],
+32 silly audit   '@rollup/rollup-win32-x64-msvc': [ '4.62.2' ],
+32 silly audit   '@types/estree': [ '1.0.9' ],
+32 silly audit   '@types/lodash': [ '4.17.24' ],
+32 silly audit   '@types/lodash-es': [ '4.17.12' ],
+32 silly audit   '@types/web-bluetooth': [ '0.0.21' ],
+32 silly audit   '@vitejs/plugin-vue': [ '5.2.4' ],
+32 silly audit   '@vue/compiler-core': [ '3.5.39' ],
+32 silly audit   '@vue/compiler-dom': [ '3.5.39' ],
+32 silly audit   '@vue/compiler-sfc': [ '3.5.39' ],
+32 silly audit   '@vue/compiler-ssr': [ '3.5.39' ],
+32 silly audit   '@vue/devtools-api': [ '6.6.4' ],
+32 silly audit   '@vue/reactivity': [ '3.5.39' ],
+32 silly audit   '@vue/runtime-core': [ '3.5.39' ],
+32 silly audit   '@vue/runtime-dom': [ '3.5.39' ],
+32 silly audit   '@vue/server-renderer': [ '3.5.39' ],
+32 silly audit   '@vue/shared': [ '3.5.39' ],
+32 silly audit   '@vueuse/core': [ '14.3.0' ],
+32 silly audit   '@vueuse/metadata': [ '14.3.0' ],
+32 silly audit   '@vueuse/shared': [ '14.3.0' ],
+32 silly audit   'async-validator': [ '4.2.5' ],
+32 silly audit   csstype: [ '3.2.3' ],
+32 silly audit   dayjs: [ '1.11.21' ],
+32 silly audit   'element-plus': [ '2.14.2' ],
+32 silly audit   entities: [ '7.0.1' ],
+32 silly audit   esbuild: [ '0.25.12' ],
+32 silly audit   'estree-walker': [ '2.0.2' ],
+32 silly audit   fdir: [ '6.5.0' ],
+32 silly audit   fsevents: [ '2.3.3' ],
+32 silly audit   lodash: [ '4.18.1' ],
+32 silly audit   'lodash-es': [ '4.18.1' ],
+32 silly audit   'lodash-unified': [ '1.0.3' ],
+32 silly audit   'magic-string': [ '0.30.21' ],
+32 silly audit   'memoize-one': [ '6.0.0' ],
+32 silly audit   nanoid: [ '3.3.15' ],
+32 silly audit   'normalize-wheel-es': [ '1.2.0' ],
+32 silly audit   picocolors: [ '1.1.1' ],
+32 silly audit   picomatch: [ '4.0.5' ],
+32 silly audit   postcss: [ '8.5.16' ],
+32 silly audit   rollup: [ '4.62.2' ],
+32 silly audit   'source-map-js': [ '1.2.1' ],
+32 silly audit   tinyglobby: [ '0.2.17' ],
+32 silly audit   vite: [ '6.4.3' ],
+32 silly audit   vue: [ '3.5.39' ],
+32 silly audit   'vue-component-type-helpers': [ '3.3.7' ],
+32 silly audit   'vue-router': [ '4.6.4' ]
+32 silly audit }
+33 http cache @babel/parser@https://registry.npmjs.org/@babel/parser/-/parser-7.29.7.tgz 1ms (cache hit)
+34 http cache rollup@https://registry.npmjs.org/rollup/-/rollup-4.62.2.tgz 0ms (cache hit)
+35 http cache nanoid@https://registry.npmjs.org/nanoid/-/nanoid-3.3.15.tgz 0ms (cache hit)
+36 http cache @vue/shared@https://registry.npmjs.org/@vue/shared/-/shared-3.5.39.tgz 0ms (cache hit)
+37 http cache @vue/server-renderer@https://registry.npmjs.org/@vue/server-renderer/-/server-renderer-3.5.39.tgz 0ms (cache hit)
+38 http cache @vue/runtime-dom@https://registry.npmjs.org/@vue/runtime-dom/-/runtime-dom-3.5.39.tgz 0ms (cache hit)
+39 http cache @vue/runtime-core@https://registry.npmjs.org/@vue/runtime-core/-/runtime-core-3.5.39.tgz 0ms (cache hit)
+40 http cache @vue/reactivity@https://registry.npmjs.org/@vue/reactivity/-/reactivity-3.5.39.tgz 0ms (cache hit)
+41 http cache @vue/compiler-ssr@https://registry.npmjs.org/@vue/compiler-ssr/-/compiler-ssr-3.5.39.tgz 0ms (cache hit)
+42 http cache @vue/compiler-dom@https://registry.npmjs.org/@vue/compiler-dom/-/compiler-dom-3.5.39.tgz 0ms (cache hit)
+43 http cache @vue/compiler-sfc@https://registry.npmjs.org/@vue/compiler-sfc/-/compiler-sfc-3.5.39.tgz 0ms (cache hit)
+44 http cache vue@https://registry.npmjs.org/vue/-/vue-3.5.39.tgz 0ms (cache hit)
+45 http cache @vue/compiler-core@https://registry.npmjs.org/@vue/compiler-core/-/compiler-core-3.5.39.tgz 0ms (cache hit)
+46 http cache @esbuild/win32-x64@https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.25.12.tgz 0ms (cache hit)
+47 http cache vite@https://registry.npmjs.org/vite/-/vite-6.4.3.tgz 0ms (cache hit)
+48 http cache esbuild@https://registry.npmjs.org/esbuild/-/esbuild-0.25.12.tgz 0ms (cache hit)
+49 http cache picomatch@https://registry.npmjs.org/picomatch/-/picomatch-4.0.5.tgz 0ms (cache hit)
+50 info run esbuild@0.25.12 postinstall node_modules/esbuild node install.js
+51 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 1358ms
+52 silly audit report {}
+53 info run esbuild@0.25.12 postinstall { code: 0, signal: null }
+54 silly CHANGE node_modules/@babel/parser
+55 silly CHANGE node_modules/rollup
+56 silly CHANGE node_modules/nanoid
+57 silly CHANGE node_modules/@vue/shared
+58 silly CHANGE node_modules/@vue/server-renderer
+59 silly CHANGE node_modules/@vue/runtime-dom
+60 silly CHANGE node_modules/@vue/runtime-core
+61 silly CHANGE node_modules/@vue/reactivity
+62 silly CHANGE node_modules/@vue/compiler-sfc
+63 silly CHANGE node_modules/@vue/compiler-ssr
+64 silly CHANGE node_modules/@vue/compiler-dom
+65 silly CHANGE node_modules/@vue/compiler-core
+66 silly CHANGE node_modules/@esbuild/win32-x64
+67 silly CHANGE node_modules/vue
+68 silly CHANGE node_modules/vite
+69 silly CHANGE node_modules/picomatch
+70 silly CHANGE node_modules/esbuild
+71 warn allow-scripts 1 package has install scripts not yet covered by allowScripts:
+71 warn allow-scripts   esbuild@0.25.12 (postinstall: node install.js)
+71 warn allow-scripts
+71 warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
+72 verbose cwd d:\traecn\aiskills\7.8\agentflow\web
+73 verbose os Windows_NT 10.0.26200
+74 verbose node v26.3.1
+75 verbose npm  v11.16.0
+76 verbose exit 0
+77 info ok

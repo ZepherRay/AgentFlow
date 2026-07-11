@@ -36,12 +36,6 @@ class UserOut(BaseModel):
         from_attributes = True
 
 
-class ChangePassword(BaseModel):
-    old_password: str = Field(..., min_length=6, max_length=128)
-    new_password: str = Field(..., min_length=6, max_length=128)
-    confirm_password: str = Field(..., min_length=6, max_length=128)
-
-
 class TokenOut(BaseModel):
     access_token: str
     token_type: str = "bearer"

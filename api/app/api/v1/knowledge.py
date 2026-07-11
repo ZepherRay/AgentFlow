@@ -1,10 +1,15 @@
-from fastapi import APIRouter, Depends, UploadFile, File, Form
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
+from fastapi.responses import FileResponse
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
+import os
+import uuid
 
 from app.db.session import get_db
 from app.core.response import ResponseModel, PaginatedResponse, PageInfo
 from app.core.security import get_current_user
+from app.core.exceptions import NotFoundException
 from app.schemas.knowledge import (
     KnowledgeBaseCreate,
     KnowledgeBaseUpdate,
@@ -68,9 +73,15 @@ async def delete_kb(
     req: DeleteRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    for kb_id in req.ids:
-        await KnowledgeService.delete_base_post(db, kb_id)
-    return ResponseModel.ok(message="删除成功")
+    try:
+        for kb_id in req.ids:
+            await KnowledgeService.delete_base_post(db, kb_id)
+        return ResponseModel.ok(message="删除成功")
+    except NotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.exception(f"delete_base failed: {e}")
+        raise HTTPException(status_code=500, detail=f"删除失败: {e}")
 
 
 @router.post("/bases/{kb_id}/documents", response_model=ResponseModel[DocumentOut])
@@ -89,10 +100,18 @@ async def list_documents(kb_id: int, db: AsyncSession = Depends(get_db)):
     return ResponseModel.ok(data=[DocumentOut.model_validate(d) for d in docs])
 
 
-@router.get("/documents/{doc_id}/chunks", response_model=ResponseModel[list[ChunkOut]])
-async def list_chunks(doc_id: int, db: AsyncSession = Depends(get_db)):
-    chunks = await KnowledgeService.list_chunks(db, doc_id)
-    return ResponseModel.ok(data=[ChunkOut.model_validate(c) for c in chunks])
+@router.get("/documents/{doc_id}/chunks", response_model=PaginatedResponse)
+async def list_chunks(doc_id: int, page: int = 1, page_size: int = 10, db: AsyncSession = Depends(get_db)):
+    chunks, total = await KnowledgeService.list_chunks(db, doc_id, page, page_size)
+    return ResponseModel.ok(data=PageInfo(page=page, page_size=page_size, total=total, items=[ChunkOut.model_validate(c) for c in chunks]))
+
+
+@router.get("/documents/{doc_id}/download")
+async def download_document(doc_id: int, db: AsyncSession = Depends(get_db)):
+    doc = await KnowledgeService.get_document(db, doc_id)
+    if not os.path.exists(doc.file_path):
+        raise HTTPException(status_code=404, detail="文件不存在")
+    return FileResponse(doc.file_path, filename=doc.filename)
 
 
 @router.post("/documents/delete", response_model=ResponseModel)
@@ -130,6 +149,42 @@ async def confirm_import(kb_id: int, req: ConfirmImportRequest, db: AsyncSession
     return ResponseModel.ok(message="导入任务已启动")
 
 
+@router.post("/documents/{doc_id}/reprocess", response_model=ResponseModel)
+async def reprocess_document(doc_id: int, db: AsyncSession = Depends(get_db)):
+    from sqlalchemy import delete, select
+    from app.models.document import Document, DocumentStatus
+    from app.tasks.knowledge_tasks import process_documents as run_process_documents
+    from app.schemas.knowledge import ImportConfig
+    from app.models.chunk import Chunk
+    from app.models.embedding import Embedding
+    from app.utils.vector_store import get_vector_store
+    from loguru import logger
+
+    doc = await db.get(Document, doc_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="文档不存在")
+
+    chunk_result = await db.execute(select(Chunk.id).where(Chunk.doc_id == doc_id))
+    chunk_ids = [c for c in chunk_result.scalars().all()]
+
+    if chunk_ids:
+        await db.execute(delete(Embedding).where(Embedding.chunk_id.in_(chunk_ids)))
+        await db.execute(delete(Chunk).where(Chunk.doc_id == doc_id))
+        try:
+            store = get_vector_store()
+            store.delete_by_ids(chunk_ids)
+        except Exception as e:
+            logger.warning(f"Milvus cleanup failed (reprocess doc {doc_id}): {e}")
+
+    doc.status = DocumentStatus.PARSING
+    doc.chunk_count = 0
+    doc.char_count = 0
+    await db.commit()
+
+    run_process_documents([doc_id], ImportConfig())
+    return ResponseModel.ok(message="重新处理已启动")
+
+
 @router.post("/bases/{kb_id}/qa", response_model=ResponseModel[QAPairOut])
 async def add_qa(
     kb_id: int,
@@ -163,3 +218,55 @@ async def save_search_config(
 ):
     config = await KnowledgeService.save_search_config(db, kb_id, req)
     return ResponseModel.ok(data=SearchConfigOut.model_validate(config))
+
+
+@router.post("/bases/{kb_id}/icon", response_model=ResponseModel[dict])
+async def upload_kb_icon(
+    kb_id: int,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="请选择文件")
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"]:
+        raise HTTPException(status_code=400, detail="只支持图片格式")
+
+    # 用绝对路径，基于 main.py 的 uploads/kb_icons
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    upload_dir = os.path.join(base_dir, "uploads", "kb_icons")
+    os.makedirs(upload_dir, exist_ok=True)
+    filename = f"{uuid.uuid4()}{ext}"
+    file_path = os.path.join(upload_dir, filename)
+    content = await file.read()
+    with open(file_path, "wb") as f:
+        f.write(content)
+
+    kb = await KnowledgeService.get_base(db, kb_id)
+    kb.icon = f"/uploads/kb_icons/{filename}"
+    await db.commit()
+    await db.refresh(kb)
+
+    return ResponseModel.ok(data={"url": kb.icon})
+
+
+@router.post("/bases/icon/temp", response_model=ResponseModel[dict])
+async def upload_temp_icon(
+    file: UploadFile = File(...),
+):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="请选择文件")
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"]:
+        raise HTTPException(status_code=400, detail="只支持图片格式")
+
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    upload_dir = os.path.join(base_dir, "uploads", "kb_icons")
+    os.makedirs(upload_dir, exist_ok=True)
+    filename = f"temp_{uuid.uuid4()}{ext}"
+    file_path = os.path.join(upload_dir, filename)
+    content = await file.read()
+    with open(file_path, "wb") as f:
+        f.write(content)
+
+    return ResponseModel.ok(data={"url": f"/uploads/kb_icons/{filename}"})

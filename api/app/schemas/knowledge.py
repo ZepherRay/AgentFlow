@@ -6,17 +6,20 @@ from datetime import datetime
 class KnowledgeBaseCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = ""
+    icon: Optional[str] = ""
 
 
 class KnowledgeBaseUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
+    icon: Optional[str] = None
 
 
 class KnowledgeBaseOut(BaseModel):
     id: int
     name: str
     description: str
+    icon: str
     owner_id: int
     document_count: int
     chunk_count: int
@@ -83,9 +86,12 @@ class KnowledgeSearchResult(BaseModel):
 
 
 class ImportConfig(BaseModel):
+    model_config = {"extra": "ignore"}  # ignore extra fields from frontend (e.g. file_type)
+
     chunk_size: int = Field(default=512, ge=64, le=4096)
-    chunk_overlap: int = Field(default=128, ge=0, le=512)
-    splitter_type: str = Field(default="simple", pattern="^(simple|recursive)$")
+    chunk_overlap: int = Field(default=50, ge=0, le=512)
+    splitter_type: str = Field(default="sentence", pattern="^(token|sentence|semantic)$")
+    reader_type: Optional[str] = Field(default=None, description="Force specific reader (pymupdf|pypdf2|unstructured|docx|pandas|markdown|html|ipynb|simple). None=auto-detect")
 
 
 class ImportPreviewRequest(BaseModel):
