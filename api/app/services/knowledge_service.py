@@ -2,7 +2,7 @@ import uuid
 from pathlib import Path
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 from fastapi import UploadFile
 
 from app.models.knowledge_base import KnowledgeBase
@@ -30,6 +30,8 @@ from app.core.exceptions import NotFoundException
 
 UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
 
+TEMP_FILE_STORE: dict[str, dict] = {}
+
 
 class KnowledgeService:
     @staticmethod
@@ -45,7 +47,30 @@ class KnowledgeService:
         result = await db.execute(
             select(KnowledgeBase).where(KnowledgeBase.owner_id == int(owner_id))
         )
-        return list(result.scalars().all())
+        kbs = list(result.scalars().all())
+        # Compute real counts from DB to ensure accuracy
+        for kb in kbs:
+            doc_count = await db.execute(
+                select(func.count(Document.id)).where(Document.kb_id == kb.id)
+            )
+            kb.document_count = doc_count.scalar() or 0
+            chunk_count = await db.execute(
+                select(func.count(Chunk.id)).where(Chunk.doc_id.in_(
+                    select(Document.id).where(
+                        Document.kb_id == kb.id,
+                        Document.status == DocumentStatus.COMPLETED
+                    )
+                ))
+            )
+            kb.chunk_count = chunk_count.scalar() or 0
+            char_sum = await db.execute(
+                select(func.coalesce(func.sum(Document.char_count), 0)).where(
+                    Document.kb_id == kb.id,
+                    Document.status == DocumentStatus.COMPLETED
+                )
+            )
+            kb.char_count = char_sum.scalar() or 0
+        return kbs
 
     @staticmethod
     async def get_base(db: AsyncSession, kb_id: int) -> KnowledgeBase:
@@ -75,7 +100,7 @@ class KnowledgeService:
         await db.flush()
 
     @staticmethod
-    async def upload_document(db: AsyncSession, kb_id: int, file: UploadFile) -> Document:
+    async def upload_document(db: AsyncSession, kb_id: int, file: UploadFile) -> str:
         kb = await db.get(KnowledgeBase, kb_id)
         if not kb:
             raise NotFoundException("知识库不存在")
@@ -88,20 +113,14 @@ class KnowledgeService:
         content = await file.read()
         file_path.write_bytes(content)
 
-        doc = Document(
-            filename=file.filename,
-            file_type=file_ext.lstrip("."),
-            file_size=len(content),
-            file_path=str(file_path),
-            kb_id=kb_id,
-        )
-        db.add(doc)
-        await db.flush()
-
-        kb.document_count += 1
-        await db.flush()
-        await db.refresh(doc)
-        return doc
+        temp_id = str(uuid.uuid4())
+        TEMP_FILE_STORE[temp_id] = {
+            "file_path": str(file_path),
+            "filename": file.filename,
+            "file_size": len(content),
+            "kb_id": kb_id,
+        }
+        return temp_id
 
     @staticmethod
     async def list_documents(db: AsyncSession, kb_id: int) -> list[Document]:
@@ -138,7 +157,7 @@ class KnowledgeService:
         config = await KnowledgeService.get_search_config(db, req.kb_id)
         top_k = max(req.top_k, config.top_k)
 
-        vector_results = await EmbeddingService.search(req.query, req.kb_id, top_k)
+        vector_results = await EmbeddingService.search(req.query, req.kb_id, top_k, embed_model=req.embed_model)
         keyword_results = await KnowledgeService._keyword_search(db, req.query, req.kb_id, top_k)
 
         return KnowledgeService._hybrid_merge(
@@ -149,26 +168,55 @@ class KnowledgeService:
 
     @staticmethod
     async def _keyword_search(db: AsyncSession, query: str, kb_id: int, top_k: int) -> list[KnowledgeSearchResult]:
-        from sqlalchemy import func
-        query_terms = query.strip().split()
-        if not query_terms:
+        import jieba
+        # Segment Chinese text into tokens, keep English tokens as-is
+        tokens = set()
+        for term in query.strip().split():
+            if any('\u4e00' <= c <= '\u9fff' for c in term):
+                # Chinese — use jieba
+                for w in jieba.cut(term):
+                    w = w.strip()
+                    if len(w) >= 1:
+                        tokens.add(w)
+            else:
+                # English/numeric — keep as-is
+                if term:
+                    tokens.add(term.lower())
+        tokens = [t for t in tokens if len(t) >= 1]
+        if not tokens:
             return []
 
-        conditions = [Chunk.content.like(f"%{term}%") for term in query_terms]
+        # Build OR conditions (match any token) + score by hit count
+        from sqlalchemy import or_
+        conditions = [Chunk.content.like(f"%{t}%") for t in tokens]
         result = await db.execute(
             select(Chunk, Document)
             .join(Document, Chunk.doc_id == Document.id)
-            .where(Document.kb_id == kb_id)
-            .where(*conditions)
-            .order_by(func.length(Chunk.content))
-            .limit(top_k)
+            .where(Document.kb_id == kb_id, or_(*conditions))
+            .limit(top_k * 2)
         )
         rows = list(result.all())
-        max_hits = max(len([t for t in query_terms if t in c.content]) for c, _ in rows) if rows else 1
-        results = []
+
+        if not rows:
+            return []
+
+        # Score each chunk by token hit ratio
+        max_hits = 0
+        scored = []
         for chunk, doc in rows:
-            hits = sum(1 for t in query_terms if t in chunk.content)
-            score = hits / max_hits if max_hits > 0 else 0
+            content_lower = chunk.content.lower()
+            hits = sum(1 for t in tokens if t.lower() in content_lower)
+            if hits > max_hits:
+                max_hits = hits
+            scored.append((chunk, doc, hits))
+
+        max_hits = max(max_hits, 1)
+        results = []
+        for chunk, doc, hits in scored:
+            score = hits / max_hits
+            # Also weight by coverage (length-normalized)
+            token_coverage = sum(len(t) for t in tokens if t.lower() in content_lower) / max(len(chunk.content), 1)
+            score = score * 0.7 + min(token_coverage, 1.0) * 0.3
             results.append(KnowledgeSearchResult(
                 chunk_id=chunk.id,
                 content=chunk.content,
@@ -176,7 +224,9 @@ class KnowledgeService:
                 doc_id=doc.id,
                 filename=doc.filename,
             ))
-        return results
+
+        results.sort(key=lambda r: r.score, reverse=True)
+        return results[:top_k]
 
     @staticmethod
     def _hybrid_merge(
@@ -205,19 +255,21 @@ class KnowledgeService:
         if not doc:
             raise NotFoundException("文档不存在")
         kb = await db.get(KnowledgeBase, doc.kb_id)
+        chunk_count = doc.chunk_count or 0
         await db.delete(doc)
         if kb:
-            kb.document_count -= 1
+            kb.document_count = max(0, kb.document_count - 1)
+            kb.chunk_count = max(0, kb.chunk_count - chunk_count)
         await db.flush()
 
     @staticmethod
     async def import_preview(db: AsyncSession, kb_id: int, req: ImportPreviewRequest) -> list[ImportPreviewResult]:
         results = []
-        for file_id in req.file_ids:
-            doc = await db.get(Document, file_id)
-            if not doc:
+        for temp_id in req.temp_ids:
+            file_info = TEMP_FILE_STORE.get(temp_id)
+            if not file_info:
                 continue
-            content = parse_file(doc.file_path, loader_type=req.config.reader_type)
+            content = parse_file(file_info["file_path"], loader_type=req.config.reader_type)
             chunks = await ChunkService.split(
                 content,
                 chunk_size=req.config.chunk_size,
@@ -232,8 +284,8 @@ class KnowledgeService:
                     "char_count": len(chunk)
                 })
             results.append(ImportPreviewResult(
-                file_id=file_id,
-                filename=doc.filename,
+                file_id=temp_id,
+                filename=file_info["filename"],
                 total_chunks=len(chunks),
                 chunks=result_chunks
             ))
@@ -242,12 +294,34 @@ class KnowledgeService:
     @staticmethod
     async def confirm_import(db: AsyncSession, kb_id: int, req: ConfirmImportRequest):
         from app.tasks.knowledge_tasks import process_documents as run_process_documents
-        for file_id in req.file_ids:
-            doc = await db.get(Document, file_id)
-            if doc:
-                doc.status = DocumentStatus.PARSING
+        doc_ids = []
+        for temp_id in req.temp_ids:
+            file_info = TEMP_FILE_STORE.pop(temp_id, None)
+            if not file_info:
+                continue
+            doc = Document(
+                filename=file_info["filename"],
+                file_type=Path(file_info["filename"]).suffix.lstrip("."),
+                file_size=file_info["file_size"],
+                file_path=file_info["file_path"],
+                kb_id=kb_id,
+                status=DocumentStatus.PARSING,
+            )
+            db.add(doc)
+            await db.flush()
+            await db.refresh(doc)
+
+            kb = await db.get(KnowledgeBase, kb_id)
+            if kb:
+                kb.document_count += 1
+
+            doc_ids.append(doc.id)
+
         await db.flush()
-        run_process_documents(req.file_ids, req.config)
+        # Commit before starting threads so background sync session can see new docs
+        await db.commit()
+        if doc_ids:
+            run_process_documents(doc_ids, req.config)
 
     @staticmethod
     async def delete_base_post(db: AsyncSession, kb_id: int):
@@ -284,7 +358,7 @@ class KnowledgeService:
             if chunk_ids:
                 try:
                     from app.utils.vector_store import get_vector_store
-                    store = get_vector_store()
+                    store = get_vector_store(kb_id=kb_id)
                     store.delete_by_ids(chunk_ids)
                 except Exception as e:
                     logger.warning(f"Milvus cleanup failed (kb {kb_id}): {e}")
@@ -310,6 +384,7 @@ class KnowledgeService:
     async def delete_document_post(db: AsyncSession, doc_ids: list[int]):
         from sqlalchemy import select, delete
         from app.models.embedding import Embedding
+        from app.models.doc_graph import DocGraph
         from app.utils.vector_store import get_vector_store
 
         for doc_id in doc_ids:
@@ -325,15 +400,19 @@ class KnowledgeService:
                 await db.execute(delete(Chunk).where(Chunk.doc_id == doc_id))
 
                 try:
-                    store = get_vector_store()
+                    store = get_vector_store(kb_id=doc.kb_id)
                     store.delete_by_ids(chunk_ids)
+                    store.delete_by_filter(f"doc_id == -1 and kb_id == {int(doc.kb_id)}")
                 except Exception as e:
                     logger.warning(f"Milvus cleanup failed (doc {doc_id}): {e}")
+
+            await db.execute(delete(DocGraph).where(DocGraph.doc_id == doc_id))
 
             kb = await db.get(KnowledgeBase, doc.kb_id)
             await db.delete(doc)
             if kb:
-                kb.document_count -= 1
+                kb.document_count = max(0, kb.document_count - 1)
+                kb.chunk_count = max(0, kb.chunk_count - len(chunk_ids))
 
             import os
             if doc.file_path and os.path.exists(doc.file_path):
@@ -387,6 +466,11 @@ class KnowledgeService:
     @staticmethod
     async def get_search_config(db: AsyncSession, kb_id: int):
         from app.models.search_config import SearchConfig as SearchConfigModel
+        from app.models.knowledge_base import KnowledgeBase
+        kb = await db.get(KnowledgeBase, kb_id)
+        if not kb:
+            # Return default config without saving to DB to avoid FK error
+            return SearchConfigModel(kb_id=kb_id, top_k=5, vector_weight=0.7, keyword_weight=0.3)
         config = await db.execute(select(SearchConfigModel).where(SearchConfigModel.kb_id == kb_id))
         config = config.scalar_one_or_none()
         if not config:

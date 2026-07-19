@@ -3,7 +3,7 @@
     <el-card class="profile-card">
       <div class="profile-header">
         <div class="avatar-wrapper">
-          <el-avatar :size="120" :src="userForm.avatar" class="avatar">
+          <el-avatar :size="120" :src="avatarUrl" class="avatar">
             <User />
           </el-avatar>
           <div class="avatar-upload-btn">
@@ -146,7 +146,7 @@ async function handleUpdate() {
 </script>
 
 <style scoped>
-.profile-container { max-width: 720px; margin: 0 auto; }
+.profile-container { max-width: 720px; margin: 0 auto; height: 100%; }
 .profile-card { padding: 40px; border-radius: 16px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); border: 1px solid #f3f4f6; }
 .profile-header { display: flex; align-items: center; gap: 32px; margin-bottom: 36px; padding-bottom: 24px; border-bottom: 1px solid #f3f4f6; }
 .avatar-wrapper { flex-shrink: 0; position: relative; }
@@ -157,4 +157,21 @@ async function handleUpdate() {
 .hidden-input { display: none; }
 .user-info h2 { margin: 0 0 8px 0; font-size: 24px; font-weight: 700; color: #111827; }
 .user-info p { margin: 0; color: #9ca3af; font-size: 15px; }
+
+@media (max-width: 768px) {
+  .profile-container { padding: 0 16px; }
+  .profile-card { padding: 24px; }
+  .profile-header { flex-direction: column; gap: 20px; margin-bottom: 24px; }
+  .avatar { width: 100px; height: 100px; }
+  .user-info h2 { font-size: 20px; }
+}
+
+@media (max-width: 480px) {
+  .profile-container { padding: 0 12px; }
+  .profile-card { padding: 16px; }
+  .profile-header { gap: 16px; padding-bottom: 16px; }
+  .avatar { width: 80px; height: 80px; }
+  .user-info h2 { font-size: 18px; }
+  .user-info p { font-size: 13px; }
+}
 </style>

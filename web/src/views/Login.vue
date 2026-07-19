@@ -19,7 +19,7 @@
           <h2 class="brand-title">企业级AI智能体开发平台</h2>
           <p class="brand-desc">连接智能体、工作流与知识库<br/>的一站式开发平台</p>
         </div>
-        <div class="brand-footer">© 2025 AgentFlow</div>
+        <div class="brand-footer">© 2026 AgentFlow</div>
       </div>
 
       <!-- 右侧登录区 -->
@@ -207,7 +207,8 @@ onUnmounted(() => {
   position: relative;
   z-index: 1;
   display: flex;
-  width: 840px;
+  width: 90%;
+  max-width: 840px;
   height: 480px;
   border-radius: 16px;
   overflow: hidden;
@@ -217,6 +218,7 @@ onUnmounted(() => {
 /* 左侧品牌 */
 .brand-panel {
   width: 420px;
+  min-width: 280px;
   background: linear-gradient(135deg, rgba(30, 64, 175, 0.85) 0%, rgba(88, 28, 135, 0.85) 100%);
   backdrop-filter: blur(10px);
   display: flex;
@@ -265,6 +267,7 @@ onUnmounted(() => {
 /* 右侧表单 */
 .form-panel {
   width: 420px;
+  min-width: 280px;
   background: #fff;
   display: flex;
   align-items: center;
@@ -273,6 +276,7 @@ onUnmounted(() => {
 
 .form-content {
   width: 300px;
+  max-width: 100%;
 }
 
 .form-title {
@@ -303,5 +307,74 @@ onUnmounted(() => {
 
 .register-link:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .login-card {
+    flex-direction: column;
+    width: 95%;
+    max-width: 400px;
+    height: auto;
+    min-height: 520px;
+  }
+  .brand-panel {
+    width: 100%;
+    min-width: auto;
+    padding: 32px 24px;
+  }
+  .logo {
+    margin-bottom: 24px;
+  }
+  .logo-text {
+    font-size: 24px;
+  }
+  .brand-title {
+    font-size: 22px;
+  }
+  .brand-desc {
+    font-size: 14px;
+  }
+  .form-panel {
+    width: 100%;
+    min-width: auto;
+    padding: 32px 24px;
+  }
+  .form-content {
+    width: 100%;
+  }
+  .form-title {
+    font-size: 22px;
+    margin-bottom: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    width: 98%;
+    border-radius: 12px;
+  }
+  .brand-panel {
+    padding: 24px 16px;
+  }
+  .logo-text {
+    font-size: 20px;
+  }
+  .brand-title {
+    font-size: 20px;
+  }
+  .brand-desc {
+    font-size: 13px;
+  }
+  .form-panel {
+    padding: 24px 16px;
+  }
+  .form-title {
+    font-size: 20px;
+    margin-bottom: 24px;
+  }
+  .login-btn {
+    height: 40px;
+    font-size: 14px;
+  }
 }
 </style>

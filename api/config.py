@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     SECRET_KEY: str = "change-me"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days
 
     # Database
     DB_HOST: str = "localhost"
@@ -55,6 +55,19 @@ class Settings(BaseSettings):
     # LLM
     DASHSCOPE_API_KEY: str = ""
     DASHSCOPE_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+
+    # Tencent Hunyuan
+    HUNYUAN_API_KEY: str = ""
+    HUNYUAN_BASE_URL: str = "https://tokenhub.tencentmaas.com/v1"
+
+    # Baidu Qianfan
+    QIANFAN_API_KEY: str = ""
+    QIANFAN_BASE_URL: str = "https://qianfan.baidubce.com/v2"
+
+    # Zhipu AI
+    ZHIPU_API_KEY: str = ""
+    ZHIPU_BASE_URL: str = "https://open.bigmodel.cn/api/paas/v4"
+
     LLM_PROVIDER: str = "dashscope"
     LLM_API_KEY: str = ""
     LLM_API_BASE: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
@@ -79,6 +92,12 @@ class Settings(BaseSettings):
     MILVUS_PASSWORD: str = ""
     MILVUS_DB: str = "default"
     MILVUS_COLLECTION: str = "agentflow_chunks"
+
+    # Neo4j (Graph RAG)
+    NEO4J_URI: str = "neo4j://localhost:7687"
+    NEO4J_USER: str = "neo4j"
+    NEO4J_PASSWORD: str = ""
+    NEO4J_DATABASE: str = "neo4j"
 
     # Logging
     LOG_DIR: str = "../logs"

@@ -17,6 +17,7 @@ from app.core.logger import setup_logger
 from app.core.exceptions import register_exception_handlers
 from app.db.session import engine, Base
 from app.api import api_router
+from app.utils.neo4j_client import close_neo4j_driver
 
 
 @asynccontextmanager
@@ -25,6 +26,7 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
+    await close_neo4j_driver()
     await engine.dispose()
 
 

@@ -1,7 +1,7 @@
 <template>
   <div id="app-layout">
     <el-container class="app-container">
-      <el-aside class="sidebar">
+      <el-aside :class="['sidebar', { show: sidebarVisible }]">
         <div class="sidebar-logo">
           <div class="logo-icon">
             <svg viewBox="0 0 40 40" width="32" height="32" fill="none">
@@ -30,6 +30,10 @@
             <el-icon><Cpu /></el-icon>
             <span>智能体</span>
           </el-menu-item>
+          <el-menu-item index="/assistant">
+            <el-icon><ChatRound /></el-icon>
+            <span>智能助手</span>
+          </el-menu-item>
           <el-menu-item index="/workflows">
             <el-icon><Connection /></el-icon>
             <span>工作流</span>
@@ -43,6 +47,7 @@
       <el-container class="main-container">
         <el-header class="header">
           <div class="header-left">
+            <el-button class="menu-toggle" @click="toggleSidebar" icon="Menu" style="display: none;">菜单</el-button>
             <span class="header-title">{{ pageTitle }}</span>
           </div>
           <div class="header-right">
@@ -74,7 +79,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowDown, HomeFilled, User, Document, Cpu, Connection } from '@element-plus/icons-vue'
+import { ArrowDown, HomeFilled, User, Document, Cpu, Connection, ChatRound, Menu } from '@element-plus/icons-vue'
 import { api } from '../api'
 
 const route = useRoute()
@@ -85,6 +90,11 @@ const activeMenu = computed(() => {
 })
 const userInfo = ref({})
 const avatarVersion = ref(Date.now())
+const sidebarVisible = ref(false)
+
+function toggleSidebar() {
+  sidebarVisible.value = !sidebarVisible.value
+}
 
 const navbarAvatarUrl = computed(() => {
   let url = userInfo.value.avatar
@@ -100,12 +110,14 @@ const pageTitles = {
   '/knowledge': '知识库',
   '/profile': '个人中心',
   '/agents': '智能体管理',
+  '/assistant': '智能助手',
   '/workflows': '工作流管理'
 }
 
 const pageTitle = computed(() => {
   if (pageTitles[route.path]) return pageTitles[route.path]
   if (route.path.startsWith('/knowledge/')) return '知识库详情'
+  if (route.path.startsWith('/agents/')) return '智能体详情'
   return 'AgentFlow'
 })
 
@@ -145,9 +157,9 @@ function handleCommand(command) {
 
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html, body, #app { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
-#app-layout { height: 100%; }
-.app-container { height: 100%; }
+html, body, #app { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+#app-layout { height: 100%; overflow: hidden; }
+.app-container { height: 100%; overflow: hidden; }
 /* Force Element Plus menu to be transparent */
 .sidebar-menu,
 .sidebar-menu .el-menu,
@@ -162,6 +174,8 @@ html, body, #app { height: 100%; font-family: -apple-system, BlinkMacSystemFont,
 
 <style scoped>
 .sidebar { background: linear-gradient(180deg, #0c1222 0%, #0f1a3a 40%, #141b3d 70%, #1a1140 100%); overflow: hidden; border-right: 1px solid #1e2a5a; width: 250px; flex-shrink: 0; position: relative; }
+@media (max-width: 900px) { .sidebar { width: 64px; } .sidebar .logo-text, .sidebar :deep(.el-menu-item span) { display: none; } .sidebar :deep(.el-menu-item) { justify-content: center; padding: 0; } .sidebar :deep(.el-menu-item i) { margin-right: 0; } .sidebar-logo { justify-content: center; padding: 0 8px; } }
+@media (max-width: 480px) { .sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; transform: translateX(-100%); transition: transform 0.3s; } .sidebar.show { transform: translateX(0); } }
 .sidebar::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(1.5px 1.5px at 20px 40px, rgba(255,255,255,0.5) 0%, transparent 100%), radial-gradient(1px 1px at 60px 120px, rgba(255,255,255,0.4) 0%, transparent 100%), radial-gradient(1.5px 1.5px at 180px 60px, rgba(255,255,255,0.3) 0%, transparent 100%), radial-gradient(1px 1px at 40px 200px, rgba(255,255,255,0.4) 0%, transparent 100%), radial-gradient(1.5px 1.5px at 200px 250px, rgba(255,255,255,0.3) 0%, transparent 100%), radial-gradient(1px 1px at 120px 300px, rgba(255,255,255,0.35) 0%, transparent 100%), radial-gradient(1.5px 1.5px at 220px 180px, rgba(255,255,255,0.25) 0%, transparent 100%), radial-gradient(1px 1px at 80px 360px, rgba(255,255,255,0.3) 0%, transparent 100%); pointer-events: none; }
 .sidebar-logo { height: 70px; display: flex; align-items: center; padding: 0 24px; gap: 14px; border-bottom: 1px solid #1e2a5a; position: relative; z-index: 1; }
 .logo-icon { flex-shrink: 0; }
@@ -187,4 +201,13 @@ html, body, #app { height: 100%; font-family: -apple-system, BlinkMacSystemFont,
 .arrow-icon { font-size: 12px; color: #94a3b8; }
 
 .main-content { background: #f1f5f9; padding: 28px; overflow-y: auto; flex: 1; }
+
+@media (max-width: 480px) {
+  .menu-toggle { display: block !important; margin-right: 12px; }
+  .header { padding: 0 16px; }
+  .header-title { font-size: 16px; }
+  .main-content { padding: 16px; }
+  .user-name { display: none; }
+  .user-avatar { width: 32px; height: 32px; }
+}
 </style>

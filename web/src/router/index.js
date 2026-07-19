@@ -13,7 +13,10 @@ const routes = [
       { path: 'knowledge', name: 'Knowledge', component: () => import('../views/KnowledgeList.vue'), meta: { requiresAuth: true } },
       { path: 'knowledge/:id', name: 'KnowledgeEdit', component: () => import('../views/KnowledgeEdit.vue'), meta: { requiresAuth: true } },
       { path: 'agents', name: 'Agent', component: () => import('../views/Agent.vue'), meta: { requiresAuth: true } },
-      { path: 'workflows', name: 'Workflow', component: () => import('../views/Workflow.vue'), meta: { requiresAuth: true } }
+      { path: 'agents/:id', name: 'AgentDetail', component: () => import('../views/AgentDetail.vue'), meta: { requiresAuth: true } },
+      { path: 'assistant', name: 'Assistant', component: () => import('../views/Assistant.vue'), meta: { requiresAuth: true } },
+      { path: 'workflows', name: 'Workflow', component: () => import('../views/Workflow.vue'), meta: { requiresAuth: true } },
+      { path: 'workflows/:id', name: 'WorkflowDetail', component: () => import('../views/Workflow.vue'), meta: { requiresAuth: true } }
     ]
   }
 ]

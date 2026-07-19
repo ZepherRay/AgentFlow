@@ -120,16 +120,19 @@ onUnmounted(() => { if (animId) cancelAnimationFrame(animId) })
 <style scoped>
 .login-container { position: relative; display: flex; align-items: center; justify-content: center; width: 100vw; height: 100vh; background: #0a0e27; overflow: hidden; }
 .star-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-.login-card { position: relative; z-index: 1; display: flex; width: 840px; height: 480px; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 80px rgba(0,0,0,0.5); }
-.brand-panel { width: 420px; background: linear-gradient(135deg, rgba(30,64,175,0.85) 0%, rgba(88,28,135,0.85) 100%); backdrop-filter: blur(10px); display: flex; flex-direction: column; justify-content: space-between; padding: 48px 40px 28px; color: #fff; }
+.login-card { position: relative; z-index: 1; display: flex; width: 90%; max-width: 840px; height: 480px; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 80px rgba(0,0,0,0.5); }
+@media (max-width: 768px) { .login-card { flex-direction: column; height: auto; max-width: 420px; } }
+.brand-panel { width: 420px; min-width: 280px; background: linear-gradient(135deg, rgba(30,64,175,0.85) 0%, rgba(88,28,135,0.85) 100%); backdrop-filter: blur(10px); display: flex; flex-direction: column; justify-content: space-between; padding: 48px 40px 28px; color: #fff; }
+@media (max-width: 768px) { .brand-panel { width: 100%; padding: 32px 24px 20px; } }
 .brand-content { flex: 1; }
 .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
 .logo-text { font-size: 28px; font-weight: 700; letter-spacing: 1px; }
 .brand-title { font-size: 26px; font-weight: 700; margin: 0 0 16px 0; line-height: 1.4; }
 .brand-desc { font-size: 15px; color: rgba(255,255,255,0.75); line-height: 1.8; margin: 0; }
 .brand-footer { font-size: 13px; color: rgba(255,255,255,0.45); }
-.form-panel { width: 420px; background: #fff; display: flex; align-items: center; justify-content: center; }
-.form-content { width: 300px; }
+.form-panel { width: 420px; min-width: 280px; background: #fff; display: flex; align-items: center; justify-content: center; }
+@media (max-width: 768px) { .form-panel { width: 100%; padding: 32px 20px; } }
+.form-content { width: 300px; max-width: 100%; }
 .form-title { font-size: 24px; font-weight: 700; color: #1a1a2e; margin: 0 0 36px 0; }
 .login-btn { width: 100%; height: 44px; font-size: 16px; border-radius: 8px; margin-top: 4px; }
 .form-footer { text-align: center; margin-top: 16px; }

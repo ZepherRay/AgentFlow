@@ -163,14 +163,150 @@ export const api = {
         body: formData,
         headers: {}
       })
-    }
+    },
+    extractGraph: (kbId, method) => request(`/knowledge/bases/${kbId}/graph/extract`, {
+      method: 'POST',
+      body: JSON.stringify({ method })
+    }),
+    getGraph: (kbId) => request(`/knowledge/bases/${kbId}/graph`),
+    getDocGraph: (kbId, docId) => request(`/knowledge/bases/${kbId}/graph/by_doc/${docId}`),
+    extractDocGraph: (kbId, docId) => request(`/knowledge/bases/${kbId}/graph/doc/${docId}/extract`, {
+      method: 'POST',
+    })
   },
   rag: {
     query: (data) => request('/rag/query', {
       method: 'POST',
       body: JSON.stringify(data)
     }),
-    models: () => request('/rag/models')
+    answerGraph: (answerText) => request('/rag/answer-graph', {
+      method: 'POST',
+      body: JSON.stringify({ answer_text: answerText })
+    }),
+    models: (provider) => request(`/rag/models?provider=${provider || 'dashscope'}`)
+  },
+  assistant: {
+    chat: async (data) => {
+      const token = getToken()
+      const response = await fetch('/api/v1/assistant/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+        },
+        body: JSON.stringify(data)
+      })
+      return response
+    },
+    getHistory: (sessionId) => request(`/assistant/history/${sessionId}`),
+    clearHistory: (sessionId) => request(`/assistant/history/${sessionId}`, { method: 'DELETE' }),
+    archiveSession: (sessionId) => request(`/assistant/sessions/${sessionId}/archive`, { method: 'POST' }),
+    listSessions: () => request('/assistant/sessions')
+  },
+  agents: {
+    list: () => request('/agents'),
+    create: (data) => request('/agents', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+    get: (id) => request(`/agents/${id}`),
+    update: (id, data) => request(`/agents/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+    delete: (ids) => request('/agents/delete', {
+      method: 'POST',
+      body: JSON.stringify({ ids })
+    }),
+    generate: (prompt) => request('/agents/generate', {
+      method: 'POST',
+      body: JSON.stringify({ prompt })
+    }),
+    chat: async (agentId, message, history = []) => {
+      const token = getToken()
+      const response = await fetch(`/api/v1/agents/${agentId}/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+        },
+        body: JSON.stringify({ message, history })
+      })
+      return response
+    },
+    regeneratePrompt: (agentId) => request(`/agents/${agentId}/regenerate-prompt`, {
+      method: 'POST'
+    }),
+    getSkills: (agentId) => request(`/agents/${agentId}/skills`),
+    addSkills: (agentId, skillNames) => request(`/agents/${agentId}/skills`, {
+      method: 'POST',
+      body: JSON.stringify({ skill_names: skillNames })
+    }),
+    removeSkill: (agentId, skillName) => request(`/agents/${agentId}/skills/${skillName}`, {
+      method: 'DELETE'
+    }),
+    getAvailableTools: (agentId) => request(`/agents/${agentId}/available-tools`),
+    uploadAvatar: (agentId, file) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      return request(`/agents/${agentId}/avatar`, {
+        method: 'POST',
+        body: formData,
+        headers: {}
+      })
+    },
+    uploadTempAvatar: (file) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      return request('/agents/avatar/temp', {
+        method: 'POST',
+        body: formData,
+        headers: {}
+      })
+    }
+  },
+  skills: {
+    list: () => request('/skills'),
+    create: (data) => request('/skills', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+    upload: (file, name) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      if (name) formData.append('name', name)
+      return request('/skills/upload', {
+        method: 'POST',
+        body: formData,
+        headers: {}
+      })
+    },
+    get: (id) => request(`/skills/${id}`),
+    update: (id, data) => request(`/skills/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+    delete: (ids) => request('/skills/delete', {
+      method: 'POST',
+      body: JSON.stringify({ ids })
+    }),
+    getAvailableTools: () => request('/skills/available/tools')
+  },
+  workflows: {
+    list: () => request('/workflows'),
+    create: (data) => request('/workflows', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+    get: (id) => request(`/workflows/${id}`),
+    update: (id, data) => request(`/workflows/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+    delete: (ids) => request('/workflows/delete', {
+      method: 'POST',
+      body: JSON.stringify({ ids })
+    })
   },
   getToken,
   setToken,

@@ -1,0 +1,22 @@
+ALTER TABLE agents
+ADD COLUMN avatar VARCHAR(500) DEFAULT NULL AFTER description,
+ADD COLUMN architecture VARCHAR(50) DEFAULT NULL AFTER avatar,
+ADD COLUMN system_prompt TEXT DEFAULT NULL AFTER architecture,
+ADD COLUMN llm_params JSON DEFAULT NULL AFTER system_prompt,
+ADD COLUMN skills JSON DEFAULT NULL AFTER llm_params,
+ADD COLUMN kb_ids JSON DEFAULT NULL AFTER skills;
+
+CREATE TABLE IF NOT EXISTS skills (
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    description TEXT DEFAULT NULL,
+    tool_name VARCHAR(100) NOT NULL,
+    config JSON DEFAULT NULL,
+    code_snippet TEXT DEFAULT NULL,
+    is_active BOOLEAN DEFAULT 1,
+    is_builtin BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_skills_name (name),
+    INDEX idx_skills_is_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -10,7 +10,7 @@
           <el-option label="文档数" value="document_count" />
           <el-option label="创建时间" value="created_at" />
         </el-select>
-        <el-input v-model="searchText" placeholder="按名称搜索" style="width: 240px" @keyup.enter="loadKbs">
+        <el-input v-model="searchText" placeholder="按名称搜索" class="search-input" @keyup.enter="loadKbs">
           <template #prefix><el-icon><Search /></el-icon></template>
         </el-input>
         <el-button type="primary" @click="showCreateDialog = true">创建</el-button>
@@ -52,11 +52,11 @@
           </span>
           <span class="stat-item">
             <el-icon><ChatLineRound /></el-icon>
-            <span>{{ formatChars(kb.char_count) }}</span>
+            <span>{{ formatChars(kb.char_count) }} 大小</span>
           </span>
           <span class="stat-item">
             <el-icon><Link /></el-icon>
-            <span>0 关联应用</span>
+            <span>{{ kb.chunk_count }} 段数</span>
           </span>
         </div>
       </div>
@@ -247,13 +247,13 @@ async function handleDelete(kb) {
 </script>
 
 <style scoped>
-.knowledge-container { padding: 0; }
-.kb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
-.header-left h2 { font-size: 26px; font-weight: 700; color: #111827; margin: 0; }
-.header-right { display: flex; align-items: center; gap: 16px; }
+.knowledge-container { padding: 0; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.kb-header { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.header-left h2 { font-size: 24px; font-weight: 700; color: #111827; margin: 0; }
+.header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
-.kb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
-.kb-card { background: #fff; border-radius: 16px; padding: 28px; cursor: pointer; transition: all 0.3s; border: 1px solid #f3f4f6; position: relative; overflow: hidden; }
+.kb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; flex: 1; overflow-y: auto; align-content: start; padding-bottom: 8px; }
+.kb-card { background: #fff; border-radius: 16px; padding: 24px; cursor: pointer; transition: all 0.3s; border: 1px solid #f3f4f6; position: relative; overflow: hidden; }
 .kb-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--card-color, #3b82f6) 0%, transparent 100%); }
 .kb-card:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.08); border-color: #e5e7eb; transform: translateY(-4px); }
 
@@ -289,4 +289,37 @@ async function handleDelete(kb) {
 .upload-icon { font-size: 32px; color: #9ca3af; }
 .upload-tip { font-size: 13px; color: #9ca3af; }
 .hidden-input { display: none; }
+.search-input { width: 220px; }
+
+@media (max-width: 1024px) {
+  .kb-header { margin-bottom: 20px; }
+  .header-left h2 { font-size: 22px; }
+  .search-input { width: 180px; }
+  .kb-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .kb-card { padding: 20px; }
+  .card-footer { gap: 16px; }
+}
+
+@media (max-width: 768px) {
+  .kb-header { flex-direction: column; align-items: stretch; gap: 16px; margin-bottom: 16px; }
+  .header-left h2 { font-size: 22px; }
+  .header-right { justify-content: flex-start; }
+  .search-input { width: 100%; }
+  .kb-grid { grid-template-columns: 1fr; gap: 16px; }
+  .kb-card { padding: 20px; }
+}
+
+@media (max-width: 480px) {
+  .header-left h2 { font-size: 20px; }
+  .header-right { flex-wrap: wrap; gap: 8px; }
+  .search-input { width: 100%; }
+  .kb-card { padding: 16px; }
+  .kb-icon { width: 44px; height: 44px; }
+  .kb-icon-img { width: 44px; height: 44px; }
+  .kb-name { font-size: 15px; }
+  .kb-desc { font-size: 13px; }
+  .card-footer { flex-direction: column; gap: 12px; }
+  .stat-item { font-size: 12px; }
+  .el-dialog { width: 95% !important; margin: 10px !important; }
+}
 </style>

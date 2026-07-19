@@ -1,0 +1,1 @@
+ALTER TABLE agents ADD COLUMN chat_params JSON NULL;

@@ -23,7 +23,7 @@ async def list_workflows(db: AsyncSession = Depends(get_db)):
 async def create_workflow(req: WorkflowCreate, db: AsyncSession = Depends(get_db)):
     workflow = Workflow(**req.model_dump())
     db.add(workflow)
-    await db.flush()
+    await db.commit()
     await db.refresh(workflow)
     return ResponseModel.ok(data=WorkflowOut.model_validate(workflow))
 
@@ -45,7 +45,7 @@ async def update_workflow(workflow_id: int, req: WorkflowUpdate, db: AsyncSessio
         raise HTTPException(status_code=404, detail="工作流不存在！")
     for key, value in req.model_dump(exclude_unset=True).items():
         setattr(workflow, key, value)
-    await db.flush()
+    await db.commit()
     await db.refresh(workflow)
     return ResponseModel.ok(data=WorkflowOut.model_validate(workflow))
 
@@ -57,5 +57,5 @@ async def delete_workflow(req: DeleteRequest, db: AsyncSession = Depends(get_db)
         workflow = result.scalar_one_or_none()
         if workflow:
             await db.delete(workflow)
-    await db.flush()
+    await db.commit()
     return ResponseModel.ok(message="删除成功")

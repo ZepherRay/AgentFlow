@@ -55,12 +55,12 @@
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column label="字符数" width="120" align="center">
+              <el-table-column label="大小" width="120" align="center">
                 <template #default="{ row }">
                   <span class="metric-tag">{{ formatChars(row.char_count) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="知识条数" width="120" align="center">
+              <el-table-column label="段数" width="120" align="center">
                 <template #default="{ row }">
                   <span class="metric-tag">{{ row.chunk_count }}</span>
                 </template>
@@ -78,6 +78,9 @@
                       </el-button>
                       <template #dropdown>
                         <el-dropdown-menu>
+                          <el-dropdown-item command="graph">
+                            <el-icon><Connection /></el-icon>知识图谱
+                          </el-dropdown-item>
                           <el-dropdown-item command="download">
                             <el-icon><Download /></el-icon>下载
                           </el-dropdown-item>
@@ -190,13 +193,24 @@
               <div class="qa-input-actions">
                 <div class="qa-params">
                   <el-select v-model="ragOptimizer" size="small" style="width:140px" placeholder="检索优化">
-                    <el-option label="无优化" value="none" />
+                    <el-option label="无优化 (默认)" value="none" />
                     <el-option label="HyDE 假设文档" value="hyde" />
                     <el-option label="查询改写" value="rewrite" />
                     <el-option label="多查询扩展" value="multi_query" />
                   </el-select>
+
                   <el-select v-model="ragModel" size="small" style="width:140px" placeholder="LLM 模型">
                     <el-option v-for="m in availableModels" :key="m" :label="m" :value="m" />
+                  </el-select>
+
+                  <el-select v-model="ragEmbedModel" size="small" style="width:140px" placeholder="嵌入模型">
+                    <el-option label="text-embedding-async-v2" value="text-embedding-async-v2" />
+                    <el-option label="text-embedding-async-v1" value="text-embedding-async-v1" />
+                    <el-option label="text-embedding-v4" value="text-embedding-v4" />
+                    <el-option label="qwen3-vl-rerank" value="qwen3-vl-rerank" />
+                    <el-option label="gte-rerank-v2" value="gte-rerank-v2" />
+                    <el-option label="tongyi-embedding-vision-plus-2026-03-06" value="tongyi-embedding-vision-plus-2026-03-06" />
+                    <el-option label="tongyi-embedding-vision-plus" value="tongyi-embedding-vision-plus" />
                   </el-select>
                 </div>
                 <el-button type="primary" @click="handleRagQuery" :loading="ragLoading" size="large">
@@ -210,6 +224,10 @@
               <div class="qa-answer-header">
                 <el-icon :size="18" color="#2563eb"><ChatDotSquare /></el-icon>
                 <span>AI 回答</span>
+                <el-button text size="small" type="primary" :loading="answerGraphLoading" @click="handleAnswerGraph" class="answer-graph-btn">
+                  <el-icon><Connection /></el-icon>
+                  <span>知识图谱</span>
+                </el-button>
                 <span class="qa-latency" v-if="ragLatency">{{ (ragLatency / 1000).toFixed(2) }}s</span>
               </div>
               <div class="qa-answer-content">{{ ragAnswer }}</div>
@@ -354,6 +372,17 @@
                 <el-slider v-model="importConfig.chunk_overlap" :min="0" :max="512" :step="16" show-input />
               </div>
             </el-form-item>
+            <el-form-item label="嵌入模型">
+              <el-select v-model="importConfig.embed_model" class="config-select">
+                <el-option label="text-embedding-async-v2" value="text-embedding-async-v2" />
+                <el-option label="text-embedding-async-v1" value="text-embedding-async-v1" />
+                <el-option label="text-embedding-v4" value="text-embedding-v4" />
+                <el-option label="qwen3-vl-rerank" value="qwen3-vl-rerank" />
+                <el-option label="gte-rerank-v2" value="gte-rerank-v2" />
+                <el-option label="tongyi-embedding-vision-plus-2026-03-06" value="tongyi-embedding-vision-plus-2026-03-06" />
+                <el-option label="tongyi-embedding-vision-plus" value="tongyi-embedding-vision-plus" />
+              </el-select>
+            </el-form-item>
           </el-form>
         </div>
       </template>
@@ -366,9 +395,9 @@
                 <div
                   v-for="file in uploadedFiles"
                   :key="file.id"
-                  :class="{ active: selectedPreviewFile === file.id }"
+                  :class="{ active: selectedPreviewFile === file.tempId }"
                   class="preview-file-item"
-                  @click="selectedPreviewFile = file.id"
+                  @click="selectedPreviewFile = file.tempId"
                 >
                   <el-icon :size="14"><Document /></el-icon>
                   <span>{{ file.name }}</span>
@@ -450,14 +479,91 @@
         <el-button type="primary" @click="handleSaveChunk">保存</el-button>
       </template>
     </el-dialog>
+
+    <!-- ========== 文档知识图谱弹窗 ========== -->
+    <el-dialog v-model="showDocGraphDialog" title="文档知识图谱" width="900px" :close-on-click-modal="false" class="graph-dialog" top="5vh">
+      <div class="graph-toolbar">
+        <div class="graph-toolbar-left">
+          <span class="graph-doc-title" v-if="selectedDocForGraph">{{ selectedDocForGraph.filename }}</span>
+        </div>
+        <div class="graph-toolbar-right" v-if="docGraphStats.nodes > 0">
+          <span class="graph-stat">节点: {{ docGraphStats.nodes }}</span>
+          <span class="graph-stat">关系: {{ docGraphStats.edges }}</span>
+        </div>
+      </div>
+      <div class="graph-canvas-container">
+        <div v-if="docGraphLoading" class="graph-empty">
+          <el-icon :size="48" color="#d1d5db"><Connection /></el-icon>
+          <p>抽取中...</p>
+        </div>
+        <div v-else-if="docGraphNodes.length === 0" class="graph-empty">
+          <el-icon :size="64" color="#d1d5db"><Connection /></el-icon>
+          <p>暂无图谱数据</p>
+        </div>
+        <div v-show="docGraphNodes.length > 0" id="docGraphCanvas" class="graph-canvas"></div>
+      </div>
+    </el-dialog>
+
+    <!-- ========== 答案知识图谱弹窗 ========== -->
+    <el-dialog v-model="showAnswerGraphDialog" title="答案知识图谱" width="900px" :close-on-click-modal="false" class="graph-dialog" top="5vh">
+      <div class="graph-toolbar">
+        <div class="graph-toolbar-left">
+          <span class="graph-doc-title">基于 AI 回答抽取的实体关系</span>
+        </div>
+        <div class="graph-toolbar-right" v-if="answerGraphStats.nodes > 0">
+          <span class="graph-stat">节点: {{ answerGraphStats.nodes }}</span>
+          <span class="graph-stat">关系: {{ answerGraphStats.edges }}</span>
+        </div>
+      </div>
+      <div class="graph-canvas-container">
+        <div v-if="answerGraphLoading" class="graph-empty">
+          <el-icon :size="48" color="#d1d5db"><Connection /></el-icon>
+          <p>抽取中...</p>
+        </div>
+        <div v-else-if="answerGraphNodes.length === 0" class="graph-empty">
+          <el-icon :size="64" color="#d1d5db"><Connection /></el-icon>
+          <p>未从回答中抽取到实体关系</p>
+        </div>
+        <div v-show="answerGraphNodes.length > 0" id="answerGraphCanvas" class="graph-canvas"></div>
+      </div>
+    </el-dialog>
+
+    <!-- ========== 知识图谱弹窗 ========== -->
+    <el-dialog v-model="showGraphDialog" title="知识图谱" width="900px" :close-on-click-modal="false" class="graph-dialog" top="5vh">
+      <div class="graph-toolbar">
+        <div class="graph-toolbar-left">
+          <el-select v-model="graphMethod" size="small" style="width:160px">
+            <el-option label="Simple 抽取" value="simple" />
+            <el-option label="Schema 抽取" value="schema" />
+          </el-select>
+          <el-button type="primary" size="small" :loading="graphLoading" @click="handleExtractGraph">
+            <el-icon><MagicStick /></el-icon> 抽取知识图谱
+          </el-button>
+          <el-button size="small" @click="handleRefreshGraph">
+            <el-icon><Refresh /></el-icon> 刷新
+          </el-button>
+        </div>
+        <div class="graph-toolbar-right" v-if="graphStats.nodes > 0">
+          <span class="graph-stat">节点: {{ graphStats.nodes }}</span>
+          <span class="graph-stat">关系: {{ graphStats.edges }}</span>
+        </div>
+      </div>
+      <div class="graph-canvas-container" ref="graphContainerRef">
+        <div v-if="graphNodes.length === 0 && !graphLoading" class="graph-empty">
+          <el-icon :size="64" color="#d1d5db"><Connection /></el-icon>
+          <p>暂无图谱数据，点击"抽取知识图谱"生成</p>
+        </div>
+        <div v-show="graphNodes.length > 0" id="graphCanvas" class="graph-canvas"></div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowLeft, Folder, Document, Search, Setting, Plus, MoreFilled, UploadFilled, Download, ChatDotSquare } from '@element-plus/icons-vue'
+import { ArrowLeft, Folder, Document, Search, Setting, Plus, MoreFilled, UploadFilled, Download, ChatDotSquare, Connection, MagicStick } from '@element-plus/icons-vue'
 import { api } from '../api'
 
 const route = useRoute()
@@ -474,11 +580,12 @@ const ragAnswer = ref('')
 const ragSources = ref([])
 const ragLatency = ref(0)
 const ragLoading = ref(false)
-const ragOptimizer = ref('hyde')
-const ragModel = ref('qwen-plus')
+const ragOptimizer = ref('none')
+const ragModel = ref('qwen3.7-plus')
+const ragEmbedModel = ref('text-embedding-v4')
 const ragTemperature = ref(0.7)
 const ragRerankTopN = ref(5)
-const availableModels = ref(['qwen-plus', 'qwen-max', 'qwen-turbo'])
+const availableModels = ref(['qwen3.7-plus', 'qwen-math-turbo', 'qwen3-vl-235b-a22b-thinking', 'qwen3-vl-32b-thinking'])
 const showSources = ref(true)
 const showImportDialog = ref(false)
 const showEditDialog = ref(false)
@@ -494,14 +601,16 @@ const iconInput = ref(null)
 const fileInput = ref(null)
 
 const importStep = ref(0)
+const isUploading = ref(false)
+const importCancelled = ref(false)
 const uploadedFiles = ref([])
-const uploadedDocIds = ref([])
+const uploadedTempIds = ref([])
 const previewResults = ref([])
 const importLoading = ref(false)
 const selectedPreviewFile = ref(null)
 const previewCurrentPage = ref(1)
 
-const importConfig = reactive({ file_type: 'document', chunk_size: 512, chunk_overlap: 128, splitter_type: 'sentence', reader_type: null })
+const importConfig = reactive({ file_type: 'document', chunk_size: 512, chunk_overlap: 128, splitter_type: 'sentence', reader_type: null, embed_model: 'text-embedding-v4' })
 
 const readerOptions = computed(() => {
   const exts = new Set(uploadedFiles.value.map(f => {
@@ -515,6 +624,7 @@ const readerOptions = computed(() => {
       { value: 'pymupdf', label: 'PyMuPDF' },
       { value: 'pypdf2', label: 'PyPDF2' },
       { value: 'unstructured', label: 'Unstructured' },
+      { value: 'pymupdf4llm', label: 'PyMuPDF4LLM' },
     ]
   }
   // Mixed or single non-PDF type
@@ -524,7 +634,32 @@ const readerOptions = computed(() => {
 })
 const searchConfig = reactive({ top_k: 5, vector_weight: 0.7, keyword_weight: 0.3 })
 const weightSum = computed(() => searchConfig.vector_weight + searchConfig.keyword_weight)
+const savedSearchConfig = reactive({ top_k: 5, vector_weight: 0.7, keyword_weight: 0.3 })
 const editForm = reactive({ content: '', chunkId: null })
+
+const showGraphDialog = ref(false)
+const graphMethod = ref('simple')
+const graphLoading = ref(false)
+const graphNodes = ref([])
+const graphEdges = ref([])
+const graphStats = ref({ nodes: 0, edges: 0 })
+const graphContainerRef = ref(null)
+
+// ── Doc Graph ──
+const showDocGraphDialog = ref(false)
+const docGraphLoading = ref(false)
+const docGraphNodes = ref([])
+const docGraphEdges = ref([])
+const docGraphStats = ref({ nodes: 0, edges: 0 })
+const selectedDocForGraph = ref(null)
+const docGraphMethod = ref('schema')
+
+// ── Answer Graph ──
+const showAnswerGraphDialog = ref(false)
+const answerGraphLoading = ref(false)
+const answerGraphNodes = ref([])
+const answerGraphEdges = ref([])
+const answerGraphStats = ref({ nodes: 0, edges: 0 })
 
 const configForm = reactive({ name: '', description: '', icon: '' })
 const configRules = {
@@ -558,7 +693,7 @@ function getIconUrl(icon) {
   if (!icon) return ''
   if (icon.startsWith('http')) return icon
   if (icon.startsWith('/uploads/')) return icon
-  return icon
+  return `/uploads/kb_icons/${icon}`
 }
 
 function formatSize(bytes) {
@@ -582,17 +717,20 @@ function formatDateTime(dateStr) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
-onMounted(() => { loadKbInfo(); loadSearchConfig(); loadRagModels(); loadDocuments() })
+onMounted(() => { loadKbInfo(); loadSearchConfig(); loadDocuments() })
 
 watch(activeTab, (tab) => {
   if (tab === 'documents') { loadDocuments() }
-  if (tab === 'search') { loadRagModels() }
 })
 
 watch(selectedPreviewFile, () => { previewCurrentPage.value = 1 })
 
 async function loadKbInfo() {
   try {
+    if (isNaN(kbId.value)) {
+      router.push('/knowledge')
+      return
+    }
     const res = await api.knowledge.get(kbId.value)
     Object.assign(kbInfo, res.data)
     Object.assign(configForm, { name: res.data.name, description: res.data.description, icon: res.data.icon || '' })
@@ -601,6 +739,7 @@ async function loadKbInfo() {
 
 async function loadDocuments() {
   try {
+    if (isNaN(kbId.value)) return
     const res = await api.knowledge.listDocuments(kbId.value)
     documents.value = searchText.value
       ? res.data.filter(d => d.filename.toLowerCase().includes(searchText.value.toLowerCase()))
@@ -626,8 +765,65 @@ function handleChunksPageChange(page) { chunksCurrentPage.value = page; loadChun
 function handleChunksSizeChange(size) { chunksPageSize.value = size; chunksCurrentPage.value = 1; loadChunks() }
 
 async function handleDocAction(cmd, doc) {
-  if (cmd === 'download') { handleDownload(doc) }
+  if (cmd === 'graph') { handleShowDocGraph(doc) }
+  else if (cmd === 'download') { handleDownload(doc) }
   else if (cmd === 'delete') { handleDeleteDocument(doc) }
+}
+
+function handleShowDocGraph(doc) {
+  selectedDocForGraph.value = doc
+  docGraphNodes.value = []
+  docGraphEdges.value = []
+  docGraphStats.value = { nodes: 0, edges: 0 }
+  showDocGraphDialog.value = true
+  docGraphLoading.value = true
+  handleLoadDocGraph()
+}
+
+async function handleLoadDocGraph() {
+  const doc = selectedDocForGraph.value
+  if (!doc) return
+  try {
+    const res = await api.knowledge.getDocGraph(kbId.value, doc.id)
+    if (res.data.nodes?.length) {
+      docGraphNodes.value = res.data.nodes
+      docGraphEdges.value = res.data.edges || []
+      docGraphStats.value = { nodes: docGraphNodes.value.length, edges: docGraphEdges.value.length }
+      nextTick(() => initDocGraphNetwork())
+    } else {
+      await doExtractDocGraph()
+    }
+  } catch {
+    await doExtractDocGraph()
+  } finally {
+    docGraphLoading.value = false
+  }
+}
+
+async function doExtractDocGraph() {
+  const doc = selectedDocForGraph.value
+  if (!doc) return
+  docGraphLoading.value = true
+  try {
+    const res = await api.knowledge.extractDocGraph(kbId.value, doc.id)
+    docGraphNodes.value = res.data.nodes || []
+    docGraphEdges.value = res.data.edges || []
+    docGraphStats.value = { nodes: docGraphNodes.value.length, edges: docGraphEdges.value.length }
+    ElMessage.success(`抽取完成：${docGraphStats.value.nodes} 节点，${docGraphStats.value.edges} 关系`)
+    nextTick(() => initDocGraphNetwork())
+  } catch (error) {
+    ElMessage.error(error.message || '抽取失败')
+  } finally {
+    docGraphLoading.value = false
+  }
+}
+
+async function handleExtractDocGraph() {
+  const doc = selectedDocForGraph.value
+  if (!doc) return
+  docGraphLoading.value = true
+  await doExtractDocGraph()
+  docGraphLoading.value = false
 }
 
 async function handleDownload(doc) {
@@ -643,6 +839,9 @@ async function handleDeleteDocument(doc) {
     })
     await api.knowledge.deleteDocument([doc.id])
     ElMessage.success('删除成功')
+    selectedDoc.value = null
+    chunks.value = []
+    showDocGraphDialog.value = false
     loadDocuments()
   } catch (error) { if (error !== 'cancel') { ElMessage.error(error.message || '删除失败') } }
 }
@@ -682,7 +881,8 @@ async function handleRagQuery() {
       kb_id: kbId.value,
       query_optimizer: ragOptimizer.value,
       llm_model: ragModel.value,
-      top_k: searchConfig.top_k,
+      embed_model: ragEmbedModel.value,
+      top_k: savedSearchConfig.top_k,
       rerank_top_n: ragRerankTopN.value,
       temperature: ragTemperature.value
     })
@@ -693,10 +893,13 @@ async function handleRagQuery() {
   finally { ragLoading.value = false }
 }
 
-async function loadRagModels() {
+async function loadRagModels(provider = 'dashscope') {
   try {
-    const res = await api.rag.models()
-    if (res.data?.models?.length) { availableModels.value = res.data.models }
+    const res = await api.rag.models(provider)
+    if (res.data?.llm?.length) { availableModels.value = res.data.llm }
+    if (!availableModels.value.includes(ragModel.value)) {
+      ragModel.value = availableModels.value[0] || 'glm-4'
+    }
   } catch { /* keep defaults */ }
 }
 
@@ -704,6 +907,7 @@ async function loadSearchConfig() {
   try {
     const res = await api.knowledge.getSearchConfig(kbId.value)
     Object.assign(searchConfig, res.data)
+    Object.assign(savedSearchConfig, res.data)
   } catch (error) { /* silent */ }
 }
 
@@ -711,6 +915,7 @@ async function handleSaveSearchConfig() {
   saveConfigLoading.value = true
   try {
     await api.knowledge.saveSearchConfig(kbId.value, searchConfig)
+    Object.assign(savedSearchConfig, searchConfig)
     ElMessage.success('保存成功')
   } catch (error) { ElMessage.error(error.message || '保存失败') }
   finally { saveConfigLoading.value = false }
@@ -763,6 +968,7 @@ function addFiles(files) {
     }
     uploadedFiles.value.push({
       id: Date.now() + Math.random(),
+      tempId: null,
       name: file.name, size: file.size, raw: file,
       status: 'pending', progress: 0
     })
@@ -772,25 +978,31 @@ function addFiles(files) {
 function removeUploadedFile(id) { uploadedFiles.value = uploadedFiles.value.filter(f => f.id !== id) }
 
 async function submitUpload() {
+  isUploading.value = true
+  importCancelled.value = false
   for (const file of uploadedFiles.value) {
+    if (importCancelled.value) break
     file.status = 'uploading'; file.progress = 0
     try {
       const res = await api.knowledge.uploadDocument(kbId.value, file.raw)
-      uploadedDocIds.value.push(res.data.id)
+      if (importCancelled.value) break
+      file.tempId = res.data.temp_id
+      uploadedTempIds.value.push(res.data.temp_id)
       file.status = 'done'; file.progress = 100
     } catch (error) {
       file.status = 'error'
       ElMessage.error(`上传 ${file.name} 失败: ${error.message}`)
     }
   }
-  importStep.value = 1
+  isUploading.value = false
+  if (!importCancelled.value) importStep.value = 1
 }
 
 async function loadPreview() {
   try {
-    const res = await api.knowledge.importPreview(kbId.value, { file_ids: uploadedDocIds.value, config: importConfig })
+    const res = await api.knowledge.importPreview(kbId.value, { temp_ids: uploadedTempIds.value, config: importConfig })
     previewResults.value = res.data
-    if (uploadedDocIds.value.length) { selectedPreviewFile.value = uploadedDocIds.value[0] }
+    if (uploadedTempIds.value.length) { selectedPreviewFile.value = uploadedTempIds.value[0] }
     importStep.value = 2
   } catch (error) { ElMessage.error('预览失败: ' + error.message) }
 }
@@ -798,24 +1010,28 @@ async function loadPreview() {
 async function doConfirmImport() {
   importLoading.value = true
   try {
-    await api.knowledge.confirmImport(kbId.value, { file_ids: uploadedDocIds.value, config: importConfig })
+    await api.knowledge.confirmImport(kbId.value, { temp_ids: uploadedTempIds.value, config: importConfig })
     ElMessage.success('导入任务已启动，正在解析...')
-    const pendingIds = [...uploadedDocIds.value]
-    closeImportDialog()
+    showImportDialog.value = false
+    importStep.value = 0
+    uploadedFiles.value = []
+    uploadedTempIds.value = []
+    previewResults.value = []
+    isUploading.value = false
+    await loadDocuments()
     // 后台轮询刷新文档列表
     let pollCount = 0
     const pollTimer = setInterval(async () => {
       pollCount++
       await loadDocuments()
-      // 检查所有导入的文档是否已完成
-      const importedDocs = documents.value.filter(d => pendingIds.includes(d.id))
-      const allCompleted = importedDocs.length === pendingIds.length &&
-        importedDocs.every(d => d.status === 'completed' || d.status === 'failed')
+      // 检查所有文档是否都已完成
+      const docs = documents.value
+      const allCompleted = docs.length > 0 && docs.every(d => d.status === 'completed' || d.status === 'failed')
       if (allCompleted) {
         clearInterval(pollTimer)
-        const failedCount = importedDocs.filter(d => d.status === 'failed').length
+        const failedCount = docs.filter(d => d.status === 'failed').length
         if (failedCount > 0) {
-          ElMessage.warning(`${importedDocs.length - failedCount} 个文档导入成功，${failedCount} 个文档导入失败`)
+          ElMessage.warning(`${docs.length - failedCount} 个文档导入成功，${failedCount} 个文档导入失败`)
         } else {
           ElMessage.success('所有文档导入完成！')
         }
@@ -830,32 +1046,218 @@ async function doConfirmImport() {
   finally { importLoading.value = false }
 }
 
-function closeImportDialog() {
+async function closeImportDialog() {
   showImportDialog.value = false
   importStep.value = 0
+  importCancelled.value = true
   uploadedFiles.value = []
-  uploadedDocIds.value = []
+  uploadedTempIds.value = []
   previewResults.value = []
-  loadDocuments()
+  isUploading.value = false
 }
+
+// ── Graph RAG ──────────────────────────────────────────────────
+
+function initGraphNetwork() {
+  const container = document.getElementById('graphCanvas')
+  if (!container) return
+
+  const nodes = graphNodes.value.map(n => ({
+    id: n.id,
+    label: n.label,
+    title: `${n.label}\n类型: ${n.type}`,
+    color: {
+      background: getNodeColor(n.type),
+      border: '#3b82f6',
+      highlight: { background: getNodeColor(n.type), border: '#60a5fa' }
+    },
+    font: { color: '#f1f5f9', size: 14, face: 'Arial', strokeWidth: 2, strokeColor: '#0b1121' },
+    borderWidth: 2,
+    size: 22,
+    shadow: { enabled: true, color: 'rgba(59,130,246,0.3)', size: 6 }
+  }))
+
+  const edges = graphEdges.value.map(e => ({
+    from: e.from_id,
+    to: e.to_id,
+    label: e.label,
+    arrows: 'to',
+    color: { color: '#475569', highlight: '#60a5fa', hover: '#60a5fa' },
+    font: { align: 'middle', color: '#94a3b8', size: 11, strokeWidth: 2, strokeColor: '#0b1121' },
+    smooth: { type: 'curvedCW', roundness: 0.1 },
+    width: 1.5
+  }))
+
+  const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }
+  const options = {
+    physics: {
+      solver: 'forceAtlas2Based',
+      forceAtlas2Based: { gravitationalConstant: -40, centralGravity: 0.005, springLength: 120, springConstant: 0.08 },
+      stabilization: { iterations: 100 }
+    },
+    interaction: {
+      hover: true, tooltipDelay: 200,
+      navigationButtons: true, keyboard: true
+    },
+    layout: { improvedLayout: true },
+    edges: { smooth: { type: 'curvedCW' } }
+  }
+
+  if (window._graphNetwork) window._graphNetwork.destroy()
+  window._graphNetwork = new vis.Network(container, data, options)
+}
+
+function initDocGraphNetwork() {
+  const container = document.getElementById('docGraphCanvas')
+  if (!container) return
+  const nodes = docGraphNodes.value.map(n => ({
+    id: n.id, label: n.label,
+    title: `${n.label}\n类型: ${n.type}`,
+    color: { background: getNodeColor(n.type), border: '#3b82f6', highlight: { background: getNodeColor(n.type), border: '#60a5fa' } },
+    font: { color: '#f1f5f9', size: 14, face: 'Arial', strokeWidth: 2, strokeColor: '#0b1121' },
+    borderWidth: 2, size: 22,
+    shadow: { enabled: true, color: 'rgba(59,130,246,0.3)', size: 6 }
+  }))
+  const edges = docGraphEdges.value.map(e => ({
+    from: e.from_id, to: e.to_id, label: e.label, arrows: 'to',
+    color: { color: '#475569', highlight: '#60a5fa', hover: '#60a5fa' },
+    font: { align: 'middle', color: '#94a3b8', size: 11, strokeWidth: 2, strokeColor: '#0b1121' },
+    smooth: { type: 'curvedCW', roundness: 0.1 }, width: 1.5
+  }))
+  const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }
+  const options = {
+    physics: { solver: 'forceAtlas2Based', forceAtlas2Based: { gravitationalConstant: -40, centralGravity: 0.005, springLength: 120, springConstant: 0.08 }, stabilization: { iterations: 100 } },
+    interaction: { hover: true, tooltipDelay: 200, navigationButtons: true, keyboard: true },
+    layout: { improvedLayout: true },
+    edges: { smooth: { type: 'curvedCW' } }
+  }
+  if (window._docGraphNetwork) window._docGraphNetwork.destroy()
+  window._docGraphNetwork = new vis.Network(container, data, options)
+}
+
+function initAnswerGraphNetwork() {
+  const container = document.getElementById('answerGraphCanvas')
+  if (!container) return
+  const nodes = answerGraphNodes.value.map(n => ({
+    id: n.id, label: n.label,
+    title: `${n.label}\n类型: ${n.type}`,
+    color: { background: getNodeColor(n.type), border: '#3b82f6', highlight: { background: getNodeColor(n.type), border: '#60a5fa' } },
+    font: { color: '#f1f5f9', size: 14, face: 'Arial', strokeWidth: 2, strokeColor: '#0b1121' },
+    borderWidth: 2, size: 22,
+    shadow: { enabled: true, color: 'rgba(59,130,246,0.3)', size: 6 }
+  }))
+  const edges = answerGraphEdges.value.map(e => ({
+    from: e.from_id, to: e.to_id, label: e.label, arrows: 'to',
+    color: { color: '#475569', highlight: '#60a5fa', hover: '#60a5fa' },
+    font: { align: 'middle', color: '#94a3b8', size: 11, strokeWidth: 2, strokeColor: '#0b1121' },
+    smooth: { type: 'curvedCW', roundness: 0.1 }, width: 1.5
+  }))
+  const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }
+  const options = {
+    physics: { solver: 'forceAtlas2Based', forceAtlas2Based: { gravitationalConstant: -40, centralGravity: 0.005, springLength: 120, springConstant: 0.08 }, stabilization: { iterations: 100 } },
+    interaction: { hover: true, tooltipDelay: 200, navigationButtons: true, keyboard: true },
+    layout: { improvedLayout: true },
+    edges: { smooth: { type: 'curvedCW' } }
+  }
+  if (window._answerGraphNetwork) window._answerGraphNetwork.destroy()
+  window._answerGraphNetwork = new vis.Network(container, data, options)
+}
+
+function getNodeColor(type) {
+  const colors = {
+    '人物': '#1e3a5f', '组织': '#1a4a4a', '地点': '#2a3f5f',
+    '时间': '#3a2a5f', '事件': '#1e3a5f', '概念': '#2a3f5f',
+    '技术': '#1a4a5f', '产品': '#2a3a4f'
+  }
+  return colors[type] || '#1e293b'
+}
+
+async function handleExtractGraph() {
+  graphLoading.value = true
+  try {
+    const res = await api.knowledge.extractGraph(kbId.value, graphMethod.value)
+    ElMessage.success(res.data.message || '抽取完成')
+    await handleRefreshGraph()
+  } catch (error) {
+    ElMessage.error(error.message || '抽取失败')
+  } finally {
+    graphLoading.value = false
+  }
+}
+
+async function handleRefreshGraph() {
+  try {
+    const res = await api.knowledge.getGraph(kbId.value)
+    graphNodes.value = res.data.nodes || []
+    graphEdges.value = res.data.edges || []
+    graphStats.value = { nodes: graphNodes.value.length, edges: graphEdges.value.length }
+    // Wait for DOM update then init vis
+    nextTick(() => initGraphNetwork())
+  } catch (error) {
+    ElMessage.error(error.message || '获取图谱数据失败')
+  }
+}
+
+async function handleAnswerGraph() {
+  if (!ragAnswer.value.trim()) return
+  answerGraphLoading.value = true
+  try {
+    const res = await api.rag.answerGraph(ragAnswer.value)
+    answerGraphNodes.value = res.data.nodes || []
+    answerGraphEdges.value = res.data.edges || []
+    answerGraphStats.value = { nodes: answerGraphNodes.value.length, edges: answerGraphEdges.value.length }
+    showAnswerGraphDialog.value = true
+    nextTick(() => initAnswerGraphNetwork())
+  } catch (error) {
+    ElMessage.error(error.message || '抽取答案图谱失败')
+  } finally {
+    answerGraphLoading.value = false
+  }
+}
+
+// Watch dialog open to load graph data
+watch(showGraphDialog, (val) => {
+  if (val) handleRefreshGraph()
+})
+
+// Clean up answer graph data when dialog closes
+watch(showAnswerGraphDialog, (val) => {
+  if (!val) {
+    answerGraphNodes.value = []
+    answerGraphEdges.value = []
+    answerGraphStats.value = { nodes: 0, edges: 0 }
+    if (window._answerGraphNetwork) {
+      window._answerGraphNetwork.destroy()
+      window._answerGraphNetwork = null
+    }
+  }
+})
 </script>
 
 <style scoped>
 /* ========== Layout ========== */
 .kb-edit-container {
   display: flex;
-  height: calc(100vh - 56px);
+  height: 100%;
   background: #f1f5f9;
 }
 
 /* ========== Sidebar ========== */
 .edit-sidebar {
   width: 220px;
+  min-width: 180px;
   background: #ffffff;
   border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+}
+@media (max-width: 900px) {
+  .edit-sidebar { width: 56px; min-width: 56px; }
+  .edit-sidebar .kb-info,
+  .edit-sidebar .sidebar-menu div span { display: none; }
+  .sidebar-header { justify-content: center; padding: 16px 8px; }
+  .sidebar-menu div { justify-content: center; padding: 10px; }
 }
 .sidebar-header {
   padding: 20px 16px;
@@ -954,10 +1356,13 @@ function closeImportDialog() {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
-.toolbar-left { display: flex; gap: 10px; align-items: center; }
+.toolbar-left { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .search-input { width: 280px; }
-.doc-table-wrapper { border-radius: 8px; overflow: hidden; }
+@media (max-width: 768px) { .search-input { width: 100%; } }
+.doc-table-wrapper { border-radius: 8px; }
 .doc-table {
   width: 100%;
   --el-table-border-color: #f1f5f9;
@@ -1069,13 +1474,21 @@ function closeImportDialog() {
   gap: 24px;
   flex: 1;
   min-height: 0;
+  flex-wrap: wrap;
+}
+@media (max-width: 1100px) {
+  .search-section { flex-direction: column; }
 }
 .search-config-panel {
   width: 300px;
+  max-width: 100%;
   background: linear-gradient(160deg, #1e3a5f 0%, #0f2440 100%);
   border-radius: 12px;
   padding: 24px;
   flex-shrink: 0;
+}
+@media (max-width: 1100px) {
+  .search-config-panel { width: 100%; }
 }
 .panel-header {
   display: flex;
@@ -1169,6 +1582,7 @@ function closeImportDialog() {
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(37,99,235,0.1);
 }
+.answer-graph-btn { margin-left: auto; margin-right: 4px; }
 .qa-latency {
   margin-left: auto;
   font-size: 12px;
@@ -1356,7 +1770,9 @@ function closeImportDialog() {
 .slider-row :deep(.el-input-number) { width: 110px; }
 
 .preview-layout { display: flex; gap: 24px; }
+@media (max-width: 768px) { .preview-layout { flex-direction: column; } }
 .preview-sidebar { width: 200px; flex-shrink: 0; }
+@media (max-width: 768px) { .preview-sidebar { width: 100%; } }
 .preview-file-list { display: flex; flex-direction: column; gap: 2px; }
 .preview-file-item {
   display: flex;
@@ -1411,7 +1827,91 @@ function closeImportDialog() {
   padding: 14px;
   font-size: 14px;
   line-height: 1.7;
-  border-radius: 8px;
-  resize: none;
+}
+
+/* ========== Graph RAG ========== */
+.graph-dialog { --el-dialog-padding-primary: 0; }
+.graph-dialog :deep(.el-dialog__body) { padding: 0; }
+.graph-dialog :deep(.el-dialog__header) { padding: 16px 20px; margin: 0; border-bottom: 1px solid #e2e8f0; }
+.graph-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.graph-toolbar-actions {
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+}
+.graph-toolbar-left { display: flex; align-items: center; gap: 8px; }
+.graph-toolbar-right { display: flex; gap: 16px; }
+.graph-doc-title {
+  font-size: 14px;
+  color: #0f172a;
+  font-weight: 600;
+}
+.graph-stat {
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
+}
+.graph-canvas-container {
+  height: 65vh;
+  min-height: 400px;
+  position: relative;
+  background: #0b1121;
+  border-radius: 0 0 8px 8px;
+}
+.graph-canvas {
+  width: 100%;
+  height: 100%;
+}
+.graph-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .edit-content { padding: 16px; gap: 16px; }
+  .doc-page, .chunks-page { padding: 16px; }
+  .page-toolbar { flex-direction: column; align-items: stretch; }
+  .toolbar-left { justify-content: flex-start; }
+  .search-input { width: 100%; }
+  .qa-input-actions { flex-direction: column; gap: 12px; }
+  .qa-params { justify-content: flex-start; }
+  .config-section { padding: 24px; }
+}
+
+@media (max-width: 480px) {
+  .edit-content { padding: 12px; gap: 12px; }
+  .doc-page, .chunks-page { padding: 12px; }
+  .doc-name-cell { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .metric-tag { font-size: 12px; }
+  .chunk-card { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .chunk-card-actions { margin-left: 0; }
+  .chunks-pagination { flex-direction: column; gap: 12px; align-items: flex-start; }
+  .qa-input-area { padding: 12px; }
+  .qa-answer { padding: 16px; }
+  .qa-answer-content { font-size: 13px; }
+  .qa-source-item { flex-direction: column; gap: 10px; }
+  .source-rank { width: 24px; height: 24px; font-size: 12px; }
+  .config-section { padding: 16px; }
+  .icon-circle { width: 64px; height: 64px; }
+  .icon-img { width: 64px; height: 64px; }
+  .el-dialog { width: 95% !important; margin: 10px !important; }
+  .upload-zone { padding: 32px 16px; }
+  .preview-layout { flex-direction: column; }
+  .preview-sidebar { width: 100%; }
 }
 </style>

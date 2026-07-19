@@ -75,6 +75,7 @@ class KnowledgeSearchRequest(BaseModel):
     query: str = Field(..., min_length=1)
     kb_id: int
     top_k: int = Field(default=5, ge=1, le=20)
+    embed_model: str = Field(default="text-embedding-v4")
 
 
 class KnowledgeSearchResult(BaseModel):
@@ -90,24 +91,25 @@ class ImportConfig(BaseModel):
 
     chunk_size: int = Field(default=512, ge=64, le=4096)
     chunk_overlap: int = Field(default=50, ge=0, le=512)
-    splitter_type: str = Field(default="sentence", pattern="^(token|sentence|semantic)$")
+    splitter_type: str = Field(default="sentence", pattern="^(token|sentence|semantic|chinese)$")
     reader_type: Optional[str] = Field(default=None, description="Force specific reader (pymupdf|pypdf2|unstructured|docx|pandas|markdown|html|ipynb|simple). None=auto-detect")
+    embed_model: str = Field(default="text-embedding-v4", description="Embedding model name")
 
 
 class ImportPreviewRequest(BaseModel):
-    file_ids: list[int]
+    temp_ids: list[str]
     config: ImportConfig
 
 
 class ImportPreviewResult(BaseModel):
-    file_id: int
+    file_id: str
     filename: str
     total_chunks: int
     chunks: list[dict]
 
 
 class ConfirmImportRequest(BaseModel):
-    file_ids: list[int]
+    temp_ids: list[str]
     config: ImportConfig
 
 
@@ -135,3 +137,34 @@ class SearchConfigOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ── Graph RAG Schemas ──────────────────────────────────────────
+
+class GraphExtractRequest(BaseModel):
+    method: str = Field(default="simple", pattern="^(simple|schema)$")
+
+
+class GraphNode(BaseModel):
+    id: str
+    label: str
+    type: str
+
+
+class GraphEdge(BaseModel):
+    from_id: str
+    to_id: str
+    label: str
+    type: str
+
+
+class GraphData(BaseModel):
+    nodes: list[GraphNode]
+    edges: list[GraphEdge]
+    kb_id: int
+
+
+class GraphExtractResult(BaseModel):
+    nodes_count: int
+    relationships_count: int
+    message: str

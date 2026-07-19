@@ -161,8 +161,21 @@ class TXTSimpleLoader(BaseLoader):
         return Path(file_path).read_text(encoding="utf-8")
 
 
+class PyMuPDF4LLMLoader(BaseLoader):
+    """Preserves table structure and images, outputs markdown."""
+    def load(self, file_path: str) -> str:
+        try:
+            import pymupdf4llm
+            md_text = pymupdf4llm.to_markdown(file_path)
+            return md_text
+        except ImportError:
+            raise ImportError("pymupdf4llm not installed (pip install pymupdf4llm)")
+        except Exception as e:
+            raise RuntimeError(f"pymupdf4llm failed: {e}")
+
+
 LOADER_MAP = {
-    ".pdf": [("pymupdf", PyMuPDFLoader), ("pypdf2", PyPDF2Loader), ("unstructured", UnstructuredPDFLoader)],
+    ".pdf": [("pymupdf", PyMuPDFLoader), ("pypdf2", PyPDF2Loader), ("unstructured", UnstructuredPDFLoader), ("pymupdf4llm", PyMuPDF4LLMLoader)],
     ".docx": [("docx", DocxLoader)],
     ".doc": [("docx", DocxLoader)],
     ".csv": [("pandas", PandasCSVLoader)],

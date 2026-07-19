@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import Optional
 import os
 import uuid
@@ -27,8 +28,14 @@ from app.schemas.knowledge import (
     ChunkUpdate,
     SearchConfig,
     SearchConfigOut,
+    GraphExtractRequest,
+    GraphData,
+    GraphExtractResult,
 )
 from app.services.knowledge_service import KnowledgeService
+from app.services.graph_service import GraphService
+from app.services.doc_graph_service import DocGraphService
+from app.db.session import SyncSessionLocal, get_sync_engine
 
 router = APIRouter(prefix="/knowledge", tags=["知识库"], dependencies=[Depends(get_current_user)])
 
@@ -84,14 +91,14 @@ async def delete_kb(
         raise HTTPException(status_code=500, detail=f"删除失败: {e}")
 
 
-@router.post("/bases/{kb_id}/documents", response_model=ResponseModel[DocumentOut])
+@router.post("/bases/{kb_id}/documents", response_model=ResponseModel)
 async def upload_document(
     kb_id: int,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
 ):
-    doc = await KnowledgeService.upload_document(db, kb_id, file)
-    return ResponseModel.ok(data=DocumentOut.model_validate(doc))
+    temp_id = await KnowledgeService.upload_document(db, kb_id, file)
+    return ResponseModel.ok(data={"temp_id": temp_id})
 
 
 @router.get("/bases/{kb_id}/documents", response_model=ResponseModel[list[DocumentOut]])
@@ -171,10 +178,14 @@ async def reprocess_document(doc_id: int, db: AsyncSession = Depends(get_db)):
         await db.execute(delete(Embedding).where(Embedding.chunk_id.in_(chunk_ids)))
         await db.execute(delete(Chunk).where(Chunk.doc_id == doc_id))
         try:
-            store = get_vector_store()
+            store = get_vector_store(kb_id=doc.kb_id)
             store.delete_by_ids(chunk_ids)
         except Exception as e:
             logger.warning(f"Milvus cleanup failed (reprocess doc {doc_id}): {e}")
+
+        kb = await db.get(KnowledgeBase, doc.kb_id)
+        if kb:
+            kb.chunk_count = max(0, kb.chunk_count - len(chunk_ids))
 
     doc.status = DocumentStatus.PARSING
     doc.chunk_count = 0
@@ -270,3 +281,121 @@ async def upload_temp_icon(
         f.write(content)
 
     return ResponseModel.ok(data={"url": f"/uploads/kb_icons/{filename}"})
+
+
+# ── Graph RAG Endpoints ────────────────────────────────────────
+
+
+@router.post("/bases/{kb_id}/graph/extract", response_model=ResponseModel[GraphExtractResult])
+async def extract_graph(
+    kb_id: int,
+    req: GraphExtractRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await GraphService.extract_graph_from_kb(db, kb_id, req.method)
+    return ResponseModel.ok(data=GraphExtractResult(**result))
+
+
+@router.get("/bases/{kb_id}/graph/by_doc/{doc_id}", response_model=ResponseModel[GraphData])
+async def get_doc_graph(
+    kb_id: int,
+    doc_id: int,
+    _current_user: dict = Depends(get_current_user),
+):
+    """Get stored doc graph from MySQL (auto-extracted during document processing)."""
+    engine = get_sync_engine()
+    session = SyncSessionLocal(bind=engine)
+    try:
+        data = DocGraphService.get_doc_graph(session, kb_id, doc_id)
+        if not data:
+            return ResponseModel.ok(data=GraphData(nodes=[], edges=[], kb_id=kb_id))
+        return ResponseModel.ok(data=GraphData(**data))
+    finally:
+        session.close()
+
+
+@router.post("/bases/{kb_id}/graph/doc/{doc_id}/extract", response_model=ResponseModel[GraphData])
+async def extract_doc_graph(
+    kb_id: int,
+    doc_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """Extract document graph on demand, return graph data directly."""
+    from app.models.chunk import Chunk
+    from app.models.document import Document
+    
+    doc = await db.get(Document, doc_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="文档不存在")
+    
+    result = await db.execute(
+        select(Chunk).where(Chunk.doc_id == doc_id).order_by(Chunk.chunk_index)
+    )
+    chunks = list(result.scalars().all())
+    if not chunks:
+        raise HTTPException(status_code=400, detail="文档无分段内容")
+    
+    full_text = "\n".join(c.content for c in chunks if c.content.strip())
+    
+    # Extract and store (async LLM call), get result immediately
+    graph_data = await DocGraphService.extract_and_store_async(doc_id, full_text, kb_id)
+    
+    return ResponseModel.ok(data=GraphData(
+        nodes=graph_data["nodes"],
+        edges=graph_data["edges"],
+        kb_id=kb_id,
+    ))
+
+
+@router.get("/bases/{kb_id}/graph", response_model=ResponseModel[GraphData])
+async def get_graph(
+    kb_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    data = await GraphService.get_graph_data(kb_id)
+    return ResponseModel.ok(data=GraphData(**data))
+
+
+@router.post("/bases/{kb_id}/graph/batch-extract", response_model=ResponseModel)
+async def batch_extract_doc_graphs(kb_id: int, db: AsyncSession = Depends(get_db)):
+    """Batch extract graphs for all completed docs without stored graph."""
+    from app.models.document import Document, DocumentStatus
+    from app.models.chunk import Chunk
+    from sqlalchemy import select
+    from app.db.session import SyncSessionLocal, get_sync_engine
+    from app.services.doc_graph_service import DocGraphService
+    
+    result = await db.execute(
+        select(Document).where(
+            Document.kb_id == kb_id,
+            Document.status == DocumentStatus.COMPLETED,
+        )
+    )
+    docs = list(result.scalars().all())
+    
+    engine = get_sync_engine()
+    session = SyncSessionLocal(bind=engine)
+    extracted = 0
+    skipped = 0
+    
+    try:
+        for doc in docs:
+            existing = DocGraphService.get_doc_graph(session, kb_id, doc.id)
+            if existing is not None:
+                skipped += 1
+                continue
+            
+            chunk_result = await db.execute(
+                select(Chunk).where(Chunk.doc_id == doc.id).order_by(Chunk.chunk_index)
+            )
+            chunks = list(chunk_result.scalars().all())
+            if not chunks:
+                continue
+            
+            full_text = "\n".join(c.content for c in chunks if c.content.strip())
+            await DocGraphService.extract_and_store_async(doc.id, full_text, kb_id)
+            extracted += 1
+    finally:
+        session.close()
+    
+    return ResponseModel.ok(message=f"批量抽取完成：{extracted} 个文档，{skipped} 个已存在")
