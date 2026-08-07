@@ -9,7 +9,9 @@ venv/
 
 # Env & secrets
 .env
-.env.*
+.env.local
+.env.*.local
+!.env.example
 
 # Logs
 logs/
