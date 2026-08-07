@@ -20,4 +20,4 @@ echo = false
 type = "milvus"
 dimension = 1024
 
-# LLM / embedding / log config: prefer api/.env (see .env.example)
+# Copy to settings.toml if needed. Most settings should go in .env instead.

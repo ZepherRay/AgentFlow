@@ -38,3 +38,7 @@ api/test_*.py
 api/verify_*.py
 api/trace_*.py
 web/check_vue.mjs
+
+# Runtime data (keep directory)
+api/uploads/*
+!api/uploads/.gitkeep
