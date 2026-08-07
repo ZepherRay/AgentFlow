@@ -105,6 +105,9 @@ class Settings(BaseSettings):
     LOG_ROTATION: str = "10 MB"
     LOG_RETENTION: str = "30 days"
 
+    # Default model list (comma-separated for auto-seed)
+    LLM_MODELS: str = "qwen-plus"
+
     @property
     def database_url(self) -> str:
         return (

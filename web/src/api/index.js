@@ -34,7 +34,16 @@ async function request(url, options = {}) {
   }
   const data = await response.json()
   if (!response.ok) {
-    throw new Error(data.message || data.detail || '请求失败')
+    console.error('API error response:', data)
+    // Handle custom format: { code, message, data: [...] } — e.g. ValidationError
+    if (Array.isArray(data.data)) {
+      const detail = data.data.map(d => `${d.loc?.slice(1).join('.') || ''}: ${d.msg}`).join('; ')
+      throw new Error(data.message + ': ' + detail)
+    }
+    const detail = Array.isArray(data.detail)
+      ? data.detail.map(d => `${d.loc?.slice(1).join('.') || ''}: ${d.msg}`).join('; ')
+      : (data.detail || data.message || JSON.stringify(data) || '请求失败')
+    throw new Error(detail)
   }
   return data
 }
@@ -306,7 +315,34 @@ export const api = {
     delete: (ids) => request('/workflows/delete', {
       method: 'POST',
       body: JSON.stringify({ ids })
-    })
+    }),
+    test: async (id, data) => {
+      const token = getToken()
+      const response = await fetch(`/api/v1/workflows/${id}/test`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+        },
+        body: JSON.stringify(data)
+      })
+      return response
+    },
+    resume: async (id, data) => {
+      const token = getToken()
+      const response = await fetch(`/api/v1/workflows/${id}/resume`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+        },
+        body: JSON.stringify(data)
+      })
+      return response
+    }
+  },
+  models: {
+    list: () => request('/models'),
   },
   getToken,
   setToken,

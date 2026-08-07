@@ -2,33 +2,29 @@ import hashlib
 from datetime import datetime, timedelta
 from typing import Optional
 
+import bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 
 from config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=True)
 
 
-def _prehash(password: str) -> str:
-    """bcrypt 72-byte limit → sha256 first."""
-    return hashlib.sha256(password.encode()).hexdigest()
+def _prehash(password: str) -> bytes:
+    return hashlib.sha256(password.encode()).hexdigest().encode()
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(_prehash(password))
+    return bcrypt.hashpw(_prehash(password), bcrypt.gensalt()).decode()
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    # new way: sha256 + bcrypt (handles >72-byte passwords)
-    if pwd_context.verify(_prehash(plain_password), hashed_password):
-        return True
-    # fallback: old way (bcrypt only) — catch ValueError for >72-byte passwords
+    if not plain_password or not hashed_password:
+        return False
     try:
-        return pwd_context.verify(plain_password, hashed_password)
+        return bcrypt.checkpw(_prehash(plain_password), hashed_password.encode())
     except ValueError:
         return False
 

@@ -185,18 +185,28 @@ class LLMService:
         max_tokens: int = None,
     ):
         client = AsyncOpenAI(api_key=settings.DASHSCOPE_API_KEY, base_url=settings.DASHSCOPE_BASE_URL)
+        usage = {}
         async for chunk in await client.chat.completions.create(
             model=model,
             messages=messages,
             temperature=temperature or settings.LLM_TEMPERATURE,
             max_tokens=max_tokens or settings.LLM_MAX_TOKENS,
             stream=True,
+            stream_options={"include_usage": True},
         ):
+            if chunk.usage:
+                usage = {
+                    "prompt_tokens": chunk.usage.prompt_tokens,
+                    "completion_tokens": chunk.usage.completion_tokens,
+                    "total_tokens": chunk.usage.total_tokens,
+                }
             if not chunk.choices:
                 continue
             content = chunk.choices[0].delta.content
             if content:
                 yield content
+        if usage:
+            yield {"__usage__": usage}
 
     @staticmethod
     async def hyde(query: str) -> str:

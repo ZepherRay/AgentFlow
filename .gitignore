@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Env & secrets
+.env
+.env.*
+
+# Logs
+logs/
+*.log
+
+# Node
+node_modules/
+web/dist/
+web/.npm-cache/
+web/node_modules/.vite-temp/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local debug scripts
+api/check_*.py
+api/test_*.py
+api/verify_*.py
+api/trace_*.py
+web/check_vue.mjs

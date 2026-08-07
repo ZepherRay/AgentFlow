@@ -83,6 +83,16 @@ class WorkflowUpdate(BaseModel):
     is_active: Optional[bool] = None
 
 
+class WorkflowTestRequest(BaseModel):
+    message: str = Field(..., description="用户消息")
+    history: list = Field(default=[], description="对话历史")
+
+
+class WorkflowResumeRequest(BaseModel):
+    node_id: str = Field(..., description="人为介入节点 ID")
+    choice: str = Field(..., description="选中的分支 ID")
+
+
 class WorkflowOut(BaseModel):
     id: int
     name: str

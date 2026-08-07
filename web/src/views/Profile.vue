@@ -146,17 +146,23 @@ async function handleUpdate() {
 </script>
 
 <style scoped>
-.profile-container { max-width: 720px; margin: 0 auto; height: 100%; }
-.profile-card { padding: 40px; border-radius: 16px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); border: 1px solid #f3f4f6; }
-.profile-header { display: flex; align-items: center; gap: 32px; margin-bottom: 36px; padding-bottom: 24px; border-bottom: 1px solid #f3f4f6; }
+.profile-container { max-width: 720px; margin: 0 auto; height: 100%; background: var(--bg-1); }
+.profile-card { padding: 40px; border-radius: var(--r-lg); border: 1px solid var(--border); background: var(--surface); backdrop-filter: blur(12px); }
+.profile-header { display: flex; align-items: center; gap: 32px; margin-bottom: 36px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
 .avatar-wrapper { flex-shrink: 0; position: relative; }
-.avatar { width: 120px; height: 120px; cursor: pointer; transition: all 0.3s; border: 4px solid #f3f4f6; }
-.avatar:hover { transform: scale(1.05); border-color: #bfdbfe; }
+.avatar { width: 120px; height: 120px; cursor: pointer; transition: all 0.3s; border: 4px solid var(--border); }
+.avatar:hover { transform: scale(1.05); border-color: var(--ac); }
 .avatar-upload-btn { margin-top: 16px; display: flex; justify-content: center; }
 .avatar-upload-btn :deep(.el-button--small) { border-radius: 8px; font-weight: 500; }
 .hidden-input { display: none; }
-.user-info h2 { margin: 0 0 8px 0; font-size: 24px; font-weight: 700; color: #111827; }
-.user-info p { margin: 0; color: #9ca3af; font-size: 15px; }
+.user-info h2 { margin: 0 0 8px 0; font-size: 24px; font-weight: 700; color: var(--t-0); }
+.user-info p { margin: 0; color: var(--t-3); font-size: 15px; }
+:deep(.el-form-item__label) { color: var(--t-2); }
+:deep(.el-input__wrapper) { background: var(--bg-2); border: 1px solid var(--border); box-shadow: none; }
+:deep(.el-input__wrapper:hover) { border-color: var(--ac); }
+:deep(.el-input__wrapper.is-focus) { border-color: var(--ac); }
+:deep(.el-input__inner) { color: var(--t-0); background: transparent; }
+:deep(.el-input__inner::placeholder) { color: var(--t-3); }
 
 @media (max-width: 768px) {
   .profile-container { padding: 0 16px; }
