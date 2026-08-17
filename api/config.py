@@ -108,6 +108,12 @@ class Settings(BaseSettings):
     # Default model list (comma-separated for auto-seed)
     LLM_MODELS: str = "qwen-plus"
 
+    # Docker first-boot admin (optional; skipped when empty or users already exist)
+    INIT_ADMIN_USERNAME: str = ""
+    INIT_ADMIN_PASSWORD: str = ""
+    INIT_ADMIN_EMAIL: str = ""
+    INIT_ADMIN_NICKNAME: str = "Admin"
+
     @property
     def database_url(self) -> str:
         return (

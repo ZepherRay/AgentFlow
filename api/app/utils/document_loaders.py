@@ -152,7 +152,8 @@ class IPYNBLoader(BaseLoader):
                 if source.strip():
                     texts.append(f"代码:\n{source}")
                 if output_texts:
-                    texts.append(f"输出:\n{'\n'.join(output_texts)}")
+                    output_block = "\n".join(output_texts)
+                    texts.append(f"输出:\n{output_block}")
         return "\n\n".join(texts)
 
 

@@ -19,7 +19,31 @@ from app.db.session import engine, Base, AsyncSessionLocal
 from app.api import api_router
 from app.utils.neo4j_client import close_neo4j_driver
 from app.models.model import Model
-from sqlalchemy import select
+from app.models.user import User
+from app.core.security import hash_password
+from sqlalchemy import select, func
+
+
+async def seed_default_admin():
+    """Create initial admin when no users exist (Docker first boot)."""
+    username = (settings.INIT_ADMIN_USERNAME or "").strip().lower()
+    password = settings.INIT_ADMIN_PASSWORD or ""
+    email = (settings.INIT_ADMIN_EMAIL or "").strip().lower()
+    if not username or not password or not email:
+        return
+    async with AsyncSessionLocal() as db:
+        count = await db.scalar(select(func.count()).select_from(User))
+        if count and count > 0:
+            return
+        user = User(
+            username=username,
+            email=email,
+            hashed_password=hash_password(password),
+            nickname=settings.INIT_ADMIN_NICKNAME or "Admin",
+            is_superuser=True,
+        )
+        db.add(user)
+        await db.commit()
 
 
 async def seed_default_models():
@@ -48,6 +72,7 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     await seed_default_models()
+    await seed_default_admin()
     yield
     await close_neo4j_driver()
     await engine.dispose()
