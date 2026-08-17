@@ -44,26 +44,29 @@ agentflow/
 │   ├── Dockerfile
 │   └── nginx.conf
 ├── docker-compose.yml      # 一键部署
+├── deploy.ps1              # Windows 一键部署脚本
 ├── LICENSE
 └── SECURITY.md
 ```
 
-## 快速开始（Docker）
+## 快速开始（Docker 一键部署）
 
-**前置：** Docker · Docker Compose · 至少 8GB 内存（Milvus 栈占用较高）
+**前置：** Docker Desktop · Docker Compose · 建议至少 8GB 内存（Milvus 栈占用较高）
+
+### Linux / macOS
 
 ```bash
 # 1. 克隆仓库
-git clone <your-repo-url>
-cd agentflow
+git clone https://github.com/ZepherRay/AgentFlow.git
+cd AgentFlow
 
-# 2. 配置环境变量
+# 2. 配置环境变量（勿提交 api/.env，仅使用 example 模板）
 cp api/.env.example api/.env
 # 编辑 api/.env，至少填写：
 #   SECRET_KEY
 #   DASHSCOPE_API_KEY / LLM_API_KEY
 
-# 3. 启动全部服务
+# 3. 构建并启动全部服务（首次约 5–15 分钟）
 docker compose up -d --build
 
 # 4. 访问
@@ -72,24 +75,50 @@ docker compose up -d --build
 # API 文档: http://localhost:8000/docs
 ```
 
-首次启动后，通过注册接口或 API 创建账号：
+### Windows
+
+```powershell
+git clone https://github.com/ZepherRay/AgentFlow.git
+cd AgentFlow
+copy api\.env.example api\.env
+# 编辑 api\.env，填写 SECRET_KEY 与 DASHSCOPE_API_KEY / LLM_API_KEY
+.\deploy.ps1
+```
+
+`deploy.ps1` 会自动执行 `docker compose up -d --build` 并等待 API 就绪。
+
+### 首次登录
+
+首次启动会自动创建管理员账号（可在 `docker-compose.yml` 中通过环境变量修改）：
+
+| 字段 | 默认值 |
+|------|--------|
+| 用户名 | `admin` |
+| 密码 | `admin123` |
+| 邮箱 | `admin@example.com` |
+
+### 之后如何使用
+
+所有服务配置了 `restart: unless-stopped`。**首次部署完成后，之后只需打开 Docker Desktop**，容器会自动启动，无需再运行终端命令。
+
+手动重启：
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"your-password","email":"admin@example.com","nickname":"Admin"}'
+docker compose up -d
 ```
 
 ### Docker 服务一览
 
-| 服务 | 端口 | 说明 |
-|------|------|------|
+| 服务 | 宿主机端口 | 说明 |
+|------|-----------|------|
 | web | 80 | Nginx 托管前端，反代 `/api` |
 | api | 8000 | FastAPI |
-| mysql | 3306 | 业务数据 |
-| redis | 6379 | 缓存 |
-| neo4j | 7474 / 7687 | 图数据库 |
-| milvus | 19530 | 向量库（含 etcd + minio） |
+| mysql | — | 业务数据（仅容器内网，避免与本机 MySQL 冲突） |
+| redis | — | 缓存 |
+| neo4j | — | 图数据库（Graph RAG） |
+| milvus | — | 向量库（含 etcd + minio） |
+
+> 如需从宿主机直连 MySQL/Redis/Neo4j/Milvus，可在 `docker-compose.yml` 中自行添加 `ports` 映射。
 
 ## 本地开发
 
@@ -170,7 +199,7 @@ VECTOR_FAISS_INDEX_PATH=./data/faiss_index
 Milvus standalone 需 1–2 分钟就绪。可查看 `docker compose logs milvus`，或先用 `faiss` 模式。
 
 **Q: 注册页面不见了？**  
-当前前端仅保留登录页，注册请走 `/api/v1/auth/register` 接口。
+首次启动已自动创建 `admin` 账号；如需额外用户，可调用 `/api/v1/auth/register` 接口。
 
 **Q: `settings.toml` 和 `.env` 哪个优先？**  
 以 `.env` 为准；`settings.toml` 为可选补充，详见 `config.py`。
